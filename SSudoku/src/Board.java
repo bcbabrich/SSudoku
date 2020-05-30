@@ -31,6 +31,12 @@ public class Board extends JPanel implements ActionListener {
     private Image num_8;
     private Image num_9;
     
+    // cell and box border images
+    private Image ver_cell_border;
+    private Image hor_cell_border;
+    private Image ver_box_border;
+    private Image hor_box_border;
+    
     // initialize puzzle object
     // FILENAME SHOULD NOT BE PASSED IN HERE
     // IN THE FUTURE IT WILL BE SET ELSEWHERE
@@ -42,7 +48,7 @@ public class Board extends JPanel implements ActionListener {
     }
     
     private void initBoard() {
-        setBackground(Color.black);
+        setBackground(Color.blue);
         setFocusable(true);
 
         setPreferredSize(new Dimension(B_WIDTH, B_HEIGHT));
@@ -53,6 +59,8 @@ public class Board extends JPanel implements ActionListener {
 
     private void loadImages() {
 
+    	// load number images
+    	// this code will get cleaned up
         ImageIcon num_im = new ImageIcon("src/resources/0.png");
         num_0 = num_im.getImage();
         
@@ -82,6 +90,20 @@ public class Board extends JPanel implements ActionListener {
         
         num_im = new ImageIcon("src/resources/9.png");
         num_9 = num_im.getImage();
+        
+        // load border images
+        num_im = new ImageIcon("src/resources/ver_cell_border.png");
+        ver_cell_border = num_im.getImage();
+        
+        num_im = new ImageIcon("src/resources/hor_cell_border.png");
+        hor_cell_border = num_im.getImage();
+        
+        num_im = new ImageIcon("src/resources/ver_box_border.png");
+        ver_box_border = num_im.getImage();
+        
+        num_im = new ImageIcon("src/resources/hor_box_border.png");
+        hor_box_border = num_im.getImage();     
+        
     }
 
     private void initGame() {
@@ -107,39 +129,89 @@ public class Board extends JPanel implements ActionListener {
     		for (int col = 0; col < 9; col++) {
     			// paint image corresponding to value in puzzle array
     			// paint this image at corresponding coords
-    			int paint_x = col * 50;
-    			int paint_y = row * 50;
+    			int num_x = col * 50 + 2;
+    			int num_y = row * 50 + 2;
     			switch(puzzle.puzzleArr[row][col]) {
     			  case 0:
-    				g.drawImage(num_0, paint_x, paint_y, this);
+    				g.drawImage(num_0, num_x, num_y, this);
     			    break;
     			  case 1:
-    				g.drawImage(num_1, paint_x, paint_y, this);
+    				g.drawImage(num_1, num_x, num_y, this);
     			    break;
     			  case 2:
-    				g.drawImage(num_2, paint_x, paint_y, this);
+    				g.drawImage(num_2, num_x, num_y, this);
       			    break;
     			  case 3:
-    				g.drawImage(num_3, paint_x, paint_y, this);
+    				g.drawImage(num_3, num_x, num_y, this);
       			    break;
     			  case 4:
-    				g.drawImage(num_4, paint_x, paint_y, this);
+    				g.drawImage(num_4, num_x, num_y, this);
     			    break;
     			  case 5:
-    				g.drawImage(num_5, paint_x, paint_y, this);
+    				g.drawImage(num_5, num_x, num_y, this);
     			    break;
     			  case 6:
-    				g.drawImage(num_6, paint_x, paint_y, this);
+    				g.drawImage(num_6, num_x, num_y, this);
       			    break;
     			  case 7:
-    				g.drawImage(num_7, paint_x, paint_y, this);
+    				g.drawImage(num_7, num_x, num_y, this);
       			    break;
     			  case 8:
-    				g.drawImage(num_8, paint_x, paint_y, this);
+    				g.drawImage(num_8, num_x, num_y, this);
       			    break;
     			  case 9:
-    				g.drawImage(num_9, paint_x, paint_y, this);
+    				g.drawImage(num_9, num_x, num_y, this);
       			    break;
+    			}
+    			
+    			// paint borders of image differently if we're at a cell or a box index
+    			
+    			// first we'll paint the horizontal borders
+    			
+    			// border 1 coords
+    			int hor_border_1_x = col * 50;
+    			int hor_border_1_y = row * 50;
+    			
+    			// border 2 coords
+    			int hor_border_2_x = col * 50;
+    			int hor_border_2_y = row * 50 + 48;
+    			
+    			switch(row % 3) {
+    				case 0: // top of a box
+    					g.drawImage(hor_box_border, hor_border_1_x, hor_border_1_y, this);
+    					g.drawImage(hor_cell_border, hor_border_2_x, hor_border_2_y, this);
+    					break;
+    				case 1: // middle of a box
+    					g.drawImage(hor_cell_border, hor_border_1_x, hor_border_1_y, this);
+    					g.drawImage(hor_cell_border, hor_border_2_x, hor_border_2_y, this);
+    					break;
+    				case 2: // bottom of a box
+    					g.drawImage(hor_cell_border, hor_border_1_x, hor_border_1_y, this);
+    					g.drawImage(hor_box_border, hor_border_2_x, hor_border_2_y, this);
+    			}
+    			
+    			// now we'll paint the vertical borders
+    			
+    			// border 1 coords
+    			int ver_border_1_x = col * 50;
+    			int ver_border_1_y = row * 50;
+    			
+    			// border 2 coords
+    			int ver_border_2_x = col * 50 + 48;
+    			int ver_border_2_y = row * 50;
+    			
+    			switch(col % 3) {
+					case 0: // left of a box
+						g.drawImage(ver_box_border, ver_border_1_x, ver_border_1_y, this);
+						g.drawImage(ver_cell_border, ver_border_2_x, ver_border_2_y, this);
+						break;
+					case 1: // middle of a box
+						g.drawImage(ver_cell_border, ver_border_1_x, ver_border_1_y, this);
+						g.drawImage(ver_cell_border, ver_border_2_x, ver_border_2_y, this);
+						break;
+					case 2: // right of a box
+						g.drawImage(ver_cell_border, ver_border_1_x, ver_border_1_y, this);
+						g.drawImage(ver_box_border, ver_border_2_x, ver_border_2_y, this);
     			}
     		}
     	}
@@ -171,7 +243,7 @@ public class Board extends JPanel implements ActionListener {
             	if (BGCOLOR) {
             		setBackground(Color.white);
             	} else {
-            		setBackground(Color.black);
+            		setBackground(Color.blue);
             	}
             	
             }
