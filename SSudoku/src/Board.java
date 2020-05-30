@@ -165,54 +165,67 @@ public class Board extends JPanel implements ActionListener {
     			}
     			
     			// paint borders of image differently if we're at a cell or a box index
+    			// get position within box
+    			int box_x = col % 3;
+    			int box_y = row % 3;
     			
-    			// first we'll paint the horizontal borders
-    			
-    			// border 1 coords
-    			int hor_border_1_x = col * 50;
-    			int hor_border_1_y = row * 50;
-    			
-    			// border 2 coords
-    			int hor_border_2_x = col * 50;
-    			int hor_border_2_y = row * 50 + 48;
-    			
-    			switch(row % 3) {
-    				case 0: // top of a box
-    					g.drawImage(hor_box_border, hor_border_1_x, hor_border_1_y, this);
-    					g.drawImage(hor_cell_border, hor_border_2_x, hor_border_2_y, this);
-    					break;
-    				case 1: // middle of a box
-    					g.drawImage(hor_cell_border, hor_border_1_x, hor_border_1_y, this);
-    					g.drawImage(hor_cell_border, hor_border_2_x, hor_border_2_y, this);
-    					break;
-    				case 2: // bottom of a box
-    					g.drawImage(hor_cell_border, hor_border_1_x, hor_border_1_y, this);
-    					g.drawImage(hor_box_border, hor_border_2_x, hor_border_2_y, this);
+    			// always draw cell borders first so box borders don't get drawn over
+    			if (box_x == 0 && box_y == 0) { // top left corner of box
+    				g.drawImage(ver_cell_border, col * 50 + 48, row * 50     , this); // right of cell  (cell border)
+    				g.drawImage(hor_cell_border, col * 50     , row * 50 + 48, this); // bottom of cell (cell border)
+    				g.drawImage(ver_box_border , col * 50     , row * 50     , this); // left of cell   (box border)
+    				g.drawImage(hor_box_border , col * 50     , row * 50     , this); // top of cell    (box border)
+    				
+    			} else if (box_x == 1 && box_y == 0) { // top middle of box
+    				g.drawImage(ver_cell_border, col * 50 + 48, row * 50     , this); // right of cell  (cell border)
+    				g.drawImage(hor_cell_border, col * 50     , row * 50 + 48, this); // bottom of cell (cell border)
+    				g.drawImage(ver_cell_border, col * 50     , row * 50     , this); // left of cell   (cell border)
+    				g.drawImage(hor_box_border , col * 50     , row * 50     , this); // top of cell    (box border)
+    				
+    			} else if (box_x == 2 && box_y == 0) { // top right of box
+    				g.drawImage(hor_cell_border, col * 50     , row * 50 + 48, this); // bottom of cell (cell border)
+    				g.drawImage(ver_cell_border, col * 50     , row * 50     , this); // left of cell   (cell border)
+    				g.drawImage(ver_box_border , col * 50 + 48, row * 50     , this); // right of cell  (box border)
+    				g.drawImage(hor_box_border , col * 50     , row * 50     , this); // top of cell    (box border)
+    				
+    			} else if (box_x == 0 && box_y == 1) { // middle left of box
+    				g.drawImage(ver_cell_border, col * 50 + 48, row * 50     , this); // right of cell  (cell border)
+    				g.drawImage(hor_cell_border, col * 50     , row * 50     , this); // bottom of cell (cell border)
+    				g.drawImage(hor_cell_border, col * 50     , row * 50 + 48, this); // top of cell    (cell border)
+    				g.drawImage(ver_box_border , col * 50     , row * 50     , this); // left of cell   (box border)
+    				
+    			} else if (box_x == 1 && box_y == 1) { // center of box
+    				g.drawImage(ver_cell_border, col * 50 + 48, row * 50     , this); // right of cell  (cell border)
+    				g.drawImage(hor_cell_border, col * 50     , row * 50 + 48, this); // bottom of cell (cell border)
+    				g.drawImage(ver_cell_border, col * 50     , row * 50     , this); // left of cell   (cell border)
+    				g.drawImage(hor_cell_border, col * 50     , row * 50     , this); // top of cell    (cell border)
+    				
+    			} else if (box_x == 2 && box_y == 1) { // middle right of box
+    				g.drawImage(hor_cell_border, col * 50     , row * 50 + 48, this); // bottom of cell (cell border)
+    				g.drawImage(ver_cell_border, col * 50     , row * 50     , this); // left of cell   (cell border)
+    				g.drawImage(hor_cell_border, col * 50     , row * 50     , this); // top of cell    (cell border)
+    				g.drawImage(ver_box_border , col * 50 + 48, row * 50     , this); // right of cell  (box border)
+    				
+    			} else if (box_x == 0 && box_y == 2) { // bottom left of box
+    				g.drawImage(ver_cell_border, col * 50 + 48, row * 50     , this); // right of cell  (cell border)
+    				g.drawImage(hor_cell_border, col * 50     , row * 50     , this); // top of cell    (cell border)
+    				g.drawImage(hor_box_border , col * 50     , row * 50 + 48, this); // bottom of cell (box border)
+    				g.drawImage(ver_box_border , col * 50     , row * 50     , this); // left of cell   (box border)
+    				
+    			} else if (box_x == 1 && box_y == 2) { // bottom middle of box
+    				g.drawImage(ver_cell_border, col * 50 + 48, row * 50     , this); // right of cell  (cell border)
+    				g.drawImage(ver_cell_border, col * 50     , row * 50     , this); // left of cell   (cell border)
+    				g.drawImage(hor_cell_border, col * 50     , row * 50     , this); // top of cell    (cell border)
+    				g.drawImage(hor_box_border , col * 50     , row * 50 + 48, this);  // bottom of cell (box border)
+    				
+    			} else if (box_x == 2 && box_y == 2) { // bottom right of box
+    				g.drawImage(ver_cell_border, col * 50     , row * 50     , this); // left of cell   (cell border)
+    				g.drawImage(hor_cell_border, col * 50     , row * 50     , this); // top of cell    (cell border)
+    				g.drawImage(hor_box_border , col * 50     , row * 50 + 48, this); // bottom of cell (box border)
+    				g.drawImage(ver_box_border , col * 50 + 48, row * 50     , this); // right of cell  (box border)
+
     			}
     			
-    			// now we'll paint the vertical borders
-    			
-    			// border 1 coords
-    			int ver_border_1_x = col * 50;
-    			int ver_border_1_y = row * 50;
-    			
-    			// border 2 coords
-    			int ver_border_2_x = col * 50 + 48;
-    			int ver_border_2_y = row * 50;
-    			
-    			switch(col % 3) {
-					case 0: // left of a box
-						g.drawImage(ver_box_border, ver_border_1_x, ver_border_1_y, this);
-						g.drawImage(ver_cell_border, ver_border_2_x, ver_border_2_y, this);
-						break;
-					case 1: // middle of a box
-						g.drawImage(ver_cell_border, ver_border_1_x, ver_border_1_y, this);
-						g.drawImage(ver_cell_border, ver_border_2_x, ver_border_2_y, this);
-						break;
-					case 2: // right of a box
-						g.drawImage(ver_cell_border, ver_border_1_x, ver_border_1_y, this);
-						g.drawImage(ver_box_border, ver_border_2_x, ver_border_2_y, this);
-    			}
     		}
     	}
     }
