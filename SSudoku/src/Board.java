@@ -9,6 +9,8 @@ import javax.swing.JPanel;
 import javax.swing.Timer;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 
 public class Board extends JPanel implements ActionListener {
 
@@ -16,20 +18,21 @@ public class Board extends JPanel implements ActionListener {
     private final int B_HEIGHT = 900;
     private final int DELAY = 140;
     private boolean BGCOLOR = false;
+    
+    // cells are always square, so their w/h are equal
+    private final int CELL_W_H = 50;
+    
+    // border height equal cell height, so no variable for it
+    private final int BORDER_W = 2;
+    
+    // vertical offset for completed number images
+    private final int CN_Y_OFFSET = 460;
 
     private Timer timer;
     
-    // unhighlighted number image objects
-    private Image num_0;
-    private Image num_1;
-    private Image num_2;
-    private Image num_3;
-    private Image num_4;
-    private Image num_5;
-    private Image num_6;
-    private Image num_7;
-    private Image num_8;
-    private Image num_9;
+    // unhighlighted number image objects go in here
+    // 10 and not 9 because we include 0
+    private Image numImgArr[][] = new Image[7][10];
     
     // cell and box border images
     private Image ver_cell_border;
@@ -53,6 +56,7 @@ public class Board extends JPanel implements ActionListener {
 
         setPreferredSize(new Dimension(B_WIDTH, B_HEIGHT));
         addMouseListener(new CellsAdapter());
+        addKeyListener(new TAdapter());
         loadImages();
         initGame();
     }
@@ -60,49 +64,40 @@ public class Board extends JPanel implements ActionListener {
     private void loadImages() {
 
     	// load number images
-    	// this code will get cleaned up
-        ImageIcon num_im = new ImageIcon("src/resources/0.png");
-        num_0 = num_im.getImage();
-        
-        num_im = new ImageIcon("src/resources/1.png");
-        num_1 = num_im.getImage();
-        
-        num_im = new ImageIcon("src/resources/2.png");
-        num_2 = num_im.getImage();
-        
-        num_im = new ImageIcon("src/resources/3.png");
-        num_3 = num_im.getImage();
-        
-        num_im = new ImageIcon("src/resources/4.png");
-        num_4 = num_im.getImage();
-        
-        num_im = new ImageIcon("src/resources/5.png");
-        num_5 = num_im.getImage();
-        
-        num_im = new ImageIcon("src/resources/6.png");
-        num_6 = num_im.getImage();
+    	// 10 and not 9 because we include 0
+    	ImageIcon im;
+    	for (int i = 0; i < 10; i++) {
+    		im = new ImageIcon("src/resources/" + i + ".png");
+    		this.numImgArr[0][i] = im.getImage();
+    		im = new ImageIcon("src/resources/" + i + "h.png");
+    		this.numImgArr[1][i] = im.getImage();
+    		if (i > 0) {
+        		im = new ImageIcon("src/resources/" + i + "c.png");
+        		this.numImgArr[3][i] = im.getImage();
+        		im = new ImageIcon("src/resources/" + i + "cc.png");
+        		this.numImgArr[4][i] = im.getImage();
+        		im = new ImageIcon("src/resources/" + i + "ch.png");
+        		this.numImgArr[5][i] = im.getImage();
+        		im = new ImageIcon("src/resources/" + i + "cch.png");
+        		this.numImgArr[6][i] = im.getImage();
+    		}
 
-        num_im = new ImageIcon("src/resources/7.png");
-        num_7 = num_im.getImage();
-        
-        num_im = new ImageIcon("src/resources/8.png");
-        num_8 = num_im.getImage();
-        
-        num_im = new ImageIcon("src/resources/9.png");
-        num_9 = num_im.getImage();
+    	}
+    	im = new ImageIcon("src/resources/0s.png");
+    	this.numImgArr[2][0] = im.getImage();
         
         // load border images
-        num_im = new ImageIcon("src/resources/ver_cell_border.png");
-        ver_cell_border = num_im.getImage();
+        im = new ImageIcon("src/resources/ver_cell_border.png");
+        ver_cell_border = im.getImage();
         
-        num_im = new ImageIcon("src/resources/hor_cell_border.png");
-        hor_cell_border = num_im.getImage();
+        im = new ImageIcon("src/resources/hor_cell_border.png");
+        hor_cell_border = im.getImage();
         
-        num_im = new ImageIcon("src/resources/ver_box_border.png");
-        ver_box_border = num_im.getImage();
+        im = new ImageIcon("src/resources/ver_box_border.png");
+        ver_box_border = im.getImage();
         
-        num_im = new ImageIcon("src/resources/hor_box_border.png");
-        hor_box_border = num_im.getImage();     
+        im = new ImageIcon("src/resources/hor_box_border.png");
+        hor_box_border = im.getImage();     
         
     }
 
@@ -129,40 +124,9 @@ public class Board extends JPanel implements ActionListener {
     		for (int col = 0; col < 9; col++) {
     			// paint image corresponding to value in puzzle array
     			// paint this image at corresponding coords
-    			int num_x = col * 50 + 2;
-    			int num_y = row * 50 + 2;
-    			switch(puzzle.puzzleArr[row][col]) {
-    			  case 0:
-    				g.drawImage(num_0, num_x, num_y, this);
-    			    break;
-    			  case 1:
-    				g.drawImage(num_1, num_x, num_y, this);
-    			    break;
-    			  case 2:
-    				g.drawImage(num_2, num_x, num_y, this);
-      			    break;
-    			  case 3:
-    				g.drawImage(num_3, num_x, num_y, this);
-      			    break;
-    			  case 4:
-    				g.drawImage(num_4, num_x, num_y, this);
-    			    break;
-    			  case 5:
-    				g.drawImage(num_5, num_x, num_y, this);
-    			    break;
-    			  case 6:
-    				g.drawImage(num_6, num_x, num_y, this);
-      			    break;
-    			  case 7:
-    				g.drawImage(num_7, num_x, num_y, this);
-      			    break;
-    			  case 8:
-    				g.drawImage(num_8, num_x, num_y, this);
-      			    break;
-    			  case 9:
-    				g.drawImage(num_9, num_x, num_y, this);
-      			    break;
-    			}
+    			int num_x = col * this.CELL_W_H + this.BORDER_W;
+    			int num_y = row * this.CELL_W_H + this.BORDER_W;
+    			g.drawImage(this.numImgArr[puzzle.puzzleArr[1][row][col]][puzzle.puzzleArr[0][row][col]], num_x, num_y, this);
     			
     			// paint borders of image differently if we're at a cell or a box index
     			// get position within box
@@ -171,62 +135,66 @@ public class Board extends JPanel implements ActionListener {
     			
     			// always draw cell borders first so box borders don't get drawn over
     			if (box_x == 0 && box_y == 0) { // top left corner of box
-    				g.drawImage(ver_cell_border, col * 50 + 48, row * 50     , this); // right of cell  (cell border)
-    				g.drawImage(hor_cell_border, col * 50     , row * 50 + 48, this); // bottom of cell (cell border)
-    				g.drawImage(ver_box_border , col * 50     , row * 50     , this); // left of cell   (box border)
-    				g.drawImage(hor_box_border , col * 50     , row * 50     , this); // top of cell    (box border)
+    				g.drawImage(ver_cell_border, col * this.CELL_W_H + (this.CELL_W_H - this.BORDER_W), row * this.CELL_W_H     , this); // right of cell  (cell border)
+    				g.drawImage(hor_cell_border, col * this.CELL_W_H     , row * this.CELL_W_H + (this.CELL_W_H - this.BORDER_W), this); // bottom of cell (cell border)
+    				g.drawImage(ver_box_border , col * this.CELL_W_H     , row * this.CELL_W_H     , this); // left of cell   (box border)
+    				g.drawImage(hor_box_border , col * this.CELL_W_H     , row * this.CELL_W_H     , this); // top of cell    (box border)
     				
     			} else if (box_x == 1 && box_y == 0) { // top middle of box
-    				g.drawImage(ver_cell_border, col * 50 + 48, row * 50     , this); // right of cell  (cell border)
-    				g.drawImage(hor_cell_border, col * 50     , row * 50 + 48, this); // bottom of cell (cell border)
-    				g.drawImage(ver_cell_border, col * 50     , row * 50     , this); // left of cell   (cell border)
-    				g.drawImage(hor_box_border , col * 50     , row * 50     , this); // top of cell    (box border)
+    				g.drawImage(ver_cell_border, col * this.CELL_W_H + (this.CELL_W_H - this.BORDER_W), row * this.CELL_W_H     , this); // right of cell  (cell border)
+    				g.drawImage(hor_cell_border, col * this.CELL_W_H     , row * this.CELL_W_H + (this.CELL_W_H - this.BORDER_W), this); // bottom of cell (cell border)
+    				g.drawImage(ver_cell_border, col * this.CELL_W_H     , row * this.CELL_W_H     , this); // left of cell   (cell border)
+    				g.drawImage(hor_box_border , col * this.CELL_W_H     , row * this.CELL_W_H     , this); // top of cell    (box border)
     				
     			} else if (box_x == 2 && box_y == 0) { // top right of box
-    				g.drawImage(hor_cell_border, col * 50     , row * 50 + 48, this); // bottom of cell (cell border)
-    				g.drawImage(ver_cell_border, col * 50     , row * 50     , this); // left of cell   (cell border)
-    				g.drawImage(ver_box_border , col * 50 + 48, row * 50     , this); // right of cell  (box border)
-    				g.drawImage(hor_box_border , col * 50     , row * 50     , this); // top of cell    (box border)
+    				g.drawImage(hor_cell_border, col * this.CELL_W_H     , row * this.CELL_W_H + (this.CELL_W_H - this.BORDER_W), this); // bottom of cell (cell border)
+    				g.drawImage(ver_cell_border, col * this.CELL_W_H     , row * this.CELL_W_H     , this); // left of cell   (cell border)
+    				g.drawImage(ver_box_border , col * this.CELL_W_H + (this.CELL_W_H - this.BORDER_W), row * this.CELL_W_H     , this); // right of cell  (box border)
+    				g.drawImage(hor_box_border , col * this.CELL_W_H     , row * this.CELL_W_H     , this); // top of cell    (box border)
     				
     			} else if (box_x == 0 && box_y == 1) { // middle left of box
-    				g.drawImage(ver_cell_border, col * 50 + 48, row * 50     , this); // right of cell  (cell border)
-    				g.drawImage(hor_cell_border, col * 50     , row * 50     , this); // bottom of cell (cell border)
-    				g.drawImage(hor_cell_border, col * 50     , row * 50 + 48, this); // top of cell    (cell border)
-    				g.drawImage(ver_box_border , col * 50     , row * 50     , this); // left of cell   (box border)
+    				g.drawImage(ver_cell_border, col * this.CELL_W_H + (this.CELL_W_H - this.BORDER_W), row * this.CELL_W_H     , this); // right of cell  (cell border)
+    				g.drawImage(hor_cell_border, col * this.CELL_W_H     , row * this.CELL_W_H     , this); // bottom of cell (cell border)
+    				g.drawImage(hor_cell_border, col * this.CELL_W_H     , row * this.CELL_W_H + (this.CELL_W_H - this.BORDER_W), this); // top of cell    (cell border)
+    				g.drawImage(ver_box_border , col * this.CELL_W_H     , row * this.CELL_W_H     , this); // left of cell   (box border)
     				
     			} else if (box_x == 1 && box_y == 1) { // center of box
-    				g.drawImage(ver_cell_border, col * 50 + 48, row * 50     , this); // right of cell  (cell border)
-    				g.drawImage(hor_cell_border, col * 50     , row * 50 + 48, this); // bottom of cell (cell border)
-    				g.drawImage(ver_cell_border, col * 50     , row * 50     , this); // left of cell   (cell border)
-    				g.drawImage(hor_cell_border, col * 50     , row * 50     , this); // top of cell    (cell border)
+    				g.drawImage(ver_cell_border, col * this.CELL_W_H + (this.CELL_W_H - this.BORDER_W), row * this.CELL_W_H     , this); // right of cell  (cell border)
+    				g.drawImage(hor_cell_border, col * this.CELL_W_H     , row * this.CELL_W_H + (this.CELL_W_H - this.BORDER_W), this); // bottom of cell (cell border)
+    				g.drawImage(ver_cell_border, col * this.CELL_W_H     , row * this.CELL_W_H     , this); // left of cell   (cell border)
+    				g.drawImage(hor_cell_border, col * this.CELL_W_H     , row * this.CELL_W_H     , this); // top of cell    (cell border)
     				
     			} else if (box_x == 2 && box_y == 1) { // middle right of box
-    				g.drawImage(hor_cell_border, col * 50     , row * 50 + 48, this); // bottom of cell (cell border)
-    				g.drawImage(ver_cell_border, col * 50     , row * 50     , this); // left of cell   (cell border)
-    				g.drawImage(hor_cell_border, col * 50     , row * 50     , this); // top of cell    (cell border)
-    				g.drawImage(ver_box_border , col * 50 + 48, row * 50     , this); // right of cell  (box border)
+    				g.drawImage(hor_cell_border, col * this.CELL_W_H     , row * this.CELL_W_H + (this.CELL_W_H - this.BORDER_W), this); // bottom of cell (cell border)
+    				g.drawImage(ver_cell_border, col * this.CELL_W_H     , row * this.CELL_W_H     , this); // left of cell   (cell border)
+    				g.drawImage(hor_cell_border, col * this.CELL_W_H     , row * this.CELL_W_H     , this); // top of cell    (cell border)
+    				g.drawImage(ver_box_border , col * this.CELL_W_H + (this.CELL_W_H - this.BORDER_W), row * this.CELL_W_H     , this); // right of cell  (box border)
     				
     			} else if (box_x == 0 && box_y == 2) { // bottom left of box
-    				g.drawImage(ver_cell_border, col * 50 + 48, row * 50     , this); // right of cell  (cell border)
-    				g.drawImage(hor_cell_border, col * 50     , row * 50     , this); // top of cell    (cell border)
-    				g.drawImage(hor_box_border , col * 50     , row * 50 + 48, this); // bottom of cell (box border)
-    				g.drawImage(ver_box_border , col * 50     , row * 50     , this); // left of cell   (box border)
+    				g.drawImage(ver_cell_border, col * this.CELL_W_H + (this.CELL_W_H - this.BORDER_W), row * this.CELL_W_H     , this); // right of cell  (cell border)
+    				g.drawImage(hor_cell_border, col * this.CELL_W_H     , row * this.CELL_W_H     , this); // top of cell    (cell border)
+    				g.drawImage(hor_box_border , col * this.CELL_W_H     , row * this.CELL_W_H + (this.CELL_W_H - this.BORDER_W), this); // bottom of cell (box border)
+    				g.drawImage(ver_box_border , col * this.CELL_W_H     , row * this.CELL_W_H     , this); // left of cell   (box border)
     				
     			} else if (box_x == 1 && box_y == 2) { // bottom middle of box
-    				g.drawImage(ver_cell_border, col * 50 + 48, row * 50     , this); // right of cell  (cell border)
-    				g.drawImage(ver_cell_border, col * 50     , row * 50     , this); // left of cell   (cell border)
-    				g.drawImage(hor_cell_border, col * 50     , row * 50     , this); // top of cell    (cell border)
-    				g.drawImage(hor_box_border , col * 50     , row * 50 + 48, this);  // bottom of cell (box border)
+    				g.drawImage(ver_cell_border, col * this.CELL_W_H + (this.CELL_W_H - this.BORDER_W), row * this.CELL_W_H     , this); // right of cell  (cell border)
+    				g.drawImage(ver_cell_border, col * this.CELL_W_H     , row * this.CELL_W_H     , this); // left of cell   (cell border)
+    				g.drawImage(hor_cell_border, col * this.CELL_W_H     , row * this.CELL_W_H     , this); // top of cell    (cell border)
+    				g.drawImage(hor_box_border , col * this.CELL_W_H     , row * this.CELL_W_H + (this.CELL_W_H - this.BORDER_W), this);  // bottom of cell (box border)
     				
     			} else if (box_x == 2 && box_y == 2) { // bottom right of box
-    				g.drawImage(ver_cell_border, col * 50     , row * 50     , this); // left of cell   (cell border)
-    				g.drawImage(hor_cell_border, col * 50     , row * 50     , this); // top of cell    (cell border)
-    				g.drawImage(hor_box_border , col * 50     , row * 50 + 48, this); // bottom of cell (box border)
-    				g.drawImage(ver_box_border , col * 50 + 48, row * 50     , this); // right of cell  (box border)
+    				g.drawImage(ver_cell_border, col * this.CELL_W_H     , row * this.CELL_W_H     , this); // left of cell   (cell border)
+    				g.drawImage(hor_cell_border, col * this.CELL_W_H     , row * this.CELL_W_H     , this); // top of cell    (cell border)
+    				g.drawImage(hor_box_border , col * this.CELL_W_H     , row * this.CELL_W_H + (this.CELL_W_H - this.BORDER_W), this); // bottom of cell (box border)
+    				g.drawImage(ver_box_border , col * this.CELL_W_H + (this.CELL_W_H - this.BORDER_W), row * this.CELL_W_H     , this); // right of cell  (box border)
 
     			}
     			
     		}
+    	}
+    	
+    	for (int c = 1; c < 10; c++) {
+    		g.drawImage(this.numImgArr[puzzle.completedNums[c-1]][c], (c-1) * this.CELL_W_H, this.CN_Y_OFFSET, this);
     	}
     }
 
@@ -241,30 +209,78 @@ public class Board extends JPanel implements ActionListener {
 
         @Override
         public void mousePressed(MouseEvent e) {
-
+        	
+        	// get coordinates of click
             int x = e.getX();
             int y = e.getY();
             
-            System.out.println("mouse coords: " + x + " " + y);
+            // send CELL coords over to Puzzle to perform highlighting
+            puzzle.setHighlights(x / CELL_W_H, y / CELL_W_H);
 
-            boolean doRepaint = false;
-            
-            if (100 < x && x < 150 &&
-            	100 < y && y < 150) {
-            	doRepaint = true;
-            	BGCOLOR = !BGCOLOR;
-            	if (BGCOLOR) {
-            		setBackground(Color.white);
-            	} else {
-            		setBackground(Color.blue);
-            	}
-            	
-            }
-
-                if (doRepaint) {
-                    repaint();
-                }
             }
         }
+    
+    private class TAdapter extends KeyAdapter {
+
+        @Override
+        public void keyPressed(KeyEvent e) {
+        	int numToEnter = -1;
+        	
+            switch(e.getKeyCode()) {
+            	case KeyEvent.VK_1:
+            		numToEnter = 1;
+            		break;
+            	case KeyEvent.VK_2:
+            		numToEnter = 2;
+            		break;
+            	case KeyEvent.VK_3:
+            		numToEnter = 3;
+            		break;
+            	case KeyEvent.VK_4:
+            		numToEnter = 4;
+            		break;
+            	case KeyEvent.VK_5:
+            		numToEnter = 5;
+            		break;
+            	case KeyEvent.VK_6:
+            		numToEnter = 6;
+            		break;
+            	case KeyEvent.VK_7:
+            		numToEnter = 7;
+            		break;
+            	case KeyEvent.VK_8:
+            		numToEnter = 8;
+            		break;
+            	case KeyEvent.VK_9:
+            		numToEnter = 9;
+            		break;
+            }
+            
+            // if a numeric key from [1-9] was entered,
+            // search puzzleArr for a selected cell
+            if (numToEnter != -1) {
+        		for (int row = 0; row < 9; row++) {
+        			for (int col = 0; col < 9; col++) {
+        				// if we find a selected cell,
+        				// set its num type to the key entered
+        				if (puzzle.puzzleArr[1][row][col] == 2){
+        					puzzle.puzzleArr[0][row][col] = numToEnter;
+        					
+        					// call set highlights on the cell we just entered a number in
+        					// the +5 is to ensure the coords we send are not on a border
+        					//    - I don't think this is strictly necessary
+        					puzzle.setHighlights(col, row);
+        					
+        					// check if this number type is now completed
+        					puzzle.setCompletedNumTypes(numToEnter);
+        					
+        					repaint();
+        				}
+        			}
+        		}
+            }
+            
+        }
+    }
 
 }
