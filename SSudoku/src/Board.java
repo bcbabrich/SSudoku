@@ -198,8 +198,6 @@ public class Board extends JPanel implements ActionListener {
         					puzzle.puzzleArr[0][row][col] = numToEnter;
         					
         					// call set highlights on the cell we just entered a number in
-        					// the +5 is to ensure the coords we send are not on a border
-        					//    - I don't think this is strictly necessary
         					puzzle.setHighlights(col, row);
         					
         					// check if this number type is now completed
