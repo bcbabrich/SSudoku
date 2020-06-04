@@ -25,6 +25,10 @@ public class Board extends JPanel implements ActionListener {
     // border height equal cell height, so no variable for it
     private final int BORDER_W = 2;
     
+    // global offsets
+    private final int GLOBAL_OFFSET_X = 100;
+    private final int GLOBAL_OFFSET_Y = 100;
+    
     // vertical offset for completed number images
     private final int CN_Y_OFFSET = 460;
 
@@ -114,18 +118,18 @@ public class Board extends JPanel implements ActionListener {
     		for (int col = 0; col < 9; col++) {
     			// paint image corresponding to value in puzzle array
     			// paint this image at corresponding coords
-    			int num_x = col * this.CELL_W_H + this.BORDER_W;
-    			int num_y = row * this.CELL_W_H + this.BORDER_W;
+    			int num_x = col * this.CELL_W_H + this.BORDER_W + this.GLOBAL_OFFSET_X;
+    			int num_y = row * this.CELL_W_H + this.BORDER_W + this.GLOBAL_OFFSET_Y;
     			g.drawImage(this.numImgArr[puzzle.puzzleArr[1][row][col]][puzzle.puzzleArr[0][row][col]], num_x, num_y, this);	
     		}
     	}
     	
     	// draw borders
-    	g.drawImage(this.borders, 0, 0, this);
+    	g.drawImage(this.borders,  this.GLOBAL_OFFSET_X,  this.GLOBAL_OFFSET_Y, this);
     	
     	// draw completed numbers
     	for (int c = 1; c < 10; c++) {
-    		g.drawImage(this.numImgArr[puzzle.completedNums[c-1]][c], (c-1) * this.CELL_W_H, this.CN_Y_OFFSET, this);
+    		g.drawImage(this.numImgArr[puzzle.completedNums[c-1]][c], (c-1) * this.CELL_W_H + this.GLOBAL_OFFSET_X, this.CN_Y_OFFSET + this.GLOBAL_OFFSET_Y, this);
     	}
     }
 
@@ -146,7 +150,7 @@ public class Board extends JPanel implements ActionListener {
             int y = e.getY();
             
             // send CELL coords over to Puzzle to perform highlighting
-            puzzle.setHighlights(x / CELL_W_H, y / CELL_W_H);
+            puzzle.setHighlights((x - GLOBAL_OFFSET_X) / CELL_W_H, (y - GLOBAL_OFFSET_X) / CELL_W_H);
 
             }
         }
