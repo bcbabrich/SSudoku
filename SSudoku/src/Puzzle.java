@@ -23,6 +23,14 @@ public class Puzzle {
     	readPuzzleFile(filename);
 
     }
+    
+    private void resetHighlights() {
+    	for (int row = 0; row < 9; row++) {
+			for (int col = 0; col < 9; col++) {
+				this.puzzleArr[1][row][col] = 0;
+			}
+		}
+    }
 
 	// reads data from puzzle file into puzzle array
     // obviously, assume puzzle file is a 9x9 grid of characters in [0-9]
@@ -63,7 +71,7 @@ public class Puzzle {
     	
     	// check where click hit
     	//    - click occurred outside of puzzle
-    	if ( cell_x > 8 || cell_x > 8) { 
+    	if ( cell_x > 8 || cell_y > 8) { 
     		numType = -1;
     		
     	//     - click occurred inside of puzzle
@@ -76,12 +84,7 @@ public class Puzzle {
     	
     	// if a non-blank spot was clicked on, set the highlighting dimension accordingly
     	if (numType > 0) {
-    		// reset all highlights
-        	for (int row = 0; row < 9; row++) {
-    			for (int col = 0; col < 9; col++) {
-    				this.puzzleArr[1][row][col] = 0;
-    			}
-    		}
+    		this.resetHighlights();
     		
     		// loop over all spots in puzzleArr
     		for (int row = 0; row < 9; row++) {
@@ -129,12 +132,8 @@ public class Puzzle {
     		
     	} else if (numType == -1) {
     		// click occurred outside of puzzle,
-    		// so reset entire highlight dimension to zero
-    		for (int row = 0; row < 9; row++) {
-    			for (int col = 0; col < 9; col++) {
-    				this.puzzleArr[1][row][col] = 0;
-    			}
-    		}
+    		this.resetHighlights();
+    		
     	} else if (numType == 0){
     		// clear any previously selected cells
         	for (int row = 0; row < 9; row++) {
@@ -147,11 +146,7 @@ public class Puzzle {
     		
         	// reset all highlights if empty cell clicked on was highlighted
     		if (this.puzzleArr[1][cell_y][cell_x] == 1) {
-            	for (int row = 0; row < 9; row++) {
-        			for (int col = 0; col < 9; col++) {
-        				this.puzzleArr[1][row][col] = 0;
-        			}
-        		}
+    			this.resetHighlights();
     		}
 
         	

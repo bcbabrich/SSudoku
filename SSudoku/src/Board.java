@@ -11,6 +11,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.lang.Math; 
 
 public class Board extends JPanel implements ActionListener {
 
@@ -125,7 +126,7 @@ public class Board extends JPanel implements ActionListener {
     	}
     	
     	// draw borders
-    	g.drawImage(this.borders,  this.GLOBAL_OFFSET_X,  this.GLOBAL_OFFSET_Y, this);
+    	g.drawImage(this.borders, this.GLOBAL_OFFSET_X, this.GLOBAL_OFFSET_Y, this);
     	
     	// draw completed numbers
     	for (int c = 1; c < 10; c++) {
@@ -150,6 +151,8 @@ public class Board extends JPanel implements ActionListener {
             int y = e.getY();
             
             // send CELL coords over to Puzzle to perform highlighting
+            x = x < GLOBAL_OFFSET_X ? GLOBAL_OFFSET_X + CELL_W_H * 9 : x; // prevent negative cell coords
+            y = y < GLOBAL_OFFSET_Y ? GLOBAL_OFFSET_Y + CELL_W_H * 9 : y;
             puzzle.setHighlights((x - GLOBAL_OFFSET_X) / CELL_W_H, (y - GLOBAL_OFFSET_X) / CELL_W_H);
 
             }
