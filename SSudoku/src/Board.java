@@ -35,10 +35,8 @@ public class Board extends JPanel implements ActionListener {
     private Image numImgArr[][] = new Image[7][10];
     
     // cell and box border images
-    private Image ver_cell_border;
-    private Image hor_cell_border;
-    private Image ver_box_border;
-    private Image hor_box_border;
+    private Image borders;
+    
     
     // initialize puzzle object
     // FILENAME SHOULD NOT BE PASSED IN HERE
@@ -86,18 +84,10 @@ public class Board extends JPanel implements ActionListener {
     	im = new ImageIcon("src/resources/0s.png");
     	this.numImgArr[2][0] = im.getImage();
         
-        // load border images
-        im = new ImageIcon("src/resources/ver_cell_border.png");
-        ver_cell_border = im.getImage();
-        
-        im = new ImageIcon("src/resources/hor_cell_border.png");
-        hor_cell_border = im.getImage();
-        
-        im = new ImageIcon("src/resources/ver_box_border.png");
-        ver_box_border = im.getImage();
-        
-        im = new ImageIcon("src/resources/hor_box_border.png");
-        hor_box_border = im.getImage();     
+        // load borders image
+        im = new ImageIcon("src/resources/box_and_cell_borders.png");
+        borders = im.getImage();
+   
         
     }
 
@@ -119,80 +109,21 @@ public class Board extends JPanel implements ActionListener {
     private void doDrawing(Graphics g) {
     	
     	
-    	// loop over puzzle array
+    	// draw numbers from puzzle array
     	for (int row = 0; row < 9; row++) {
     		for (int col = 0; col < 9; col++) {
     			// paint image corresponding to value in puzzle array
     			// paint this image at corresponding coords
     			int num_x = col * this.CELL_W_H + this.BORDER_W;
     			int num_y = row * this.CELL_W_H + this.BORDER_W;
-    			g.drawImage(this.numImgArr[puzzle.puzzleArr[1][row][col]][puzzle.puzzleArr[0][row][col]], num_x, num_y, this);
-    			
-    			// paint borders of image differently if we're at a cell or a box index
-    			// get position within box
-    			int box_x = col % 3;
-    			int box_y = row % 3;
-    			
-    			// always draw cell borders first so box borders don't get drawn over
-    			if (box_x == 0 && box_y == 0) { // top left corner of box
-    				g.drawImage(ver_cell_border, col * this.CELL_W_H + (this.CELL_W_H - this.BORDER_W), row * this.CELL_W_H     , this); // right of cell  (cell border)
-    				g.drawImage(hor_cell_border, col * this.CELL_W_H     , row * this.CELL_W_H + (this.CELL_W_H - this.BORDER_W), this); // bottom of cell (cell border)
-    				g.drawImage(ver_box_border , col * this.CELL_W_H     , row * this.CELL_W_H     , this); // left of cell   (box border)
-    				g.drawImage(hor_box_border , col * this.CELL_W_H     , row * this.CELL_W_H     , this); // top of cell    (box border)
-    				
-    			} else if (box_x == 1 && box_y == 0) { // top middle of box
-    				g.drawImage(ver_cell_border, col * this.CELL_W_H + (this.CELL_W_H - this.BORDER_W), row * this.CELL_W_H     , this); // right of cell  (cell border)
-    				g.drawImage(hor_cell_border, col * this.CELL_W_H     , row * this.CELL_W_H + (this.CELL_W_H - this.BORDER_W), this); // bottom of cell (cell border)
-    				g.drawImage(ver_cell_border, col * this.CELL_W_H     , row * this.CELL_W_H     , this); // left of cell   (cell border)
-    				g.drawImage(hor_box_border , col * this.CELL_W_H     , row * this.CELL_W_H     , this); // top of cell    (box border)
-    				
-    			} else if (box_x == 2 && box_y == 0) { // top right of box
-    				g.drawImage(hor_cell_border, col * this.CELL_W_H     , row * this.CELL_W_H + (this.CELL_W_H - this.BORDER_W), this); // bottom of cell (cell border)
-    				g.drawImage(ver_cell_border, col * this.CELL_W_H     , row * this.CELL_W_H     , this); // left of cell   (cell border)
-    				g.drawImage(ver_box_border , col * this.CELL_W_H + (this.CELL_W_H - this.BORDER_W), row * this.CELL_W_H     , this); // right of cell  (box border)
-    				g.drawImage(hor_box_border , col * this.CELL_W_H     , row * this.CELL_W_H     , this); // top of cell    (box border)
-    				
-    			} else if (box_x == 0 && box_y == 1) { // middle left of box
-    				g.drawImage(ver_cell_border, col * this.CELL_W_H + (this.CELL_W_H - this.BORDER_W), row * this.CELL_W_H     , this); // right of cell  (cell border)
-    				g.drawImage(hor_cell_border, col * this.CELL_W_H     , row * this.CELL_W_H     , this); // bottom of cell (cell border)
-    				g.drawImage(hor_cell_border, col * this.CELL_W_H     , row * this.CELL_W_H + (this.CELL_W_H - this.BORDER_W), this); // top of cell    (cell border)
-    				g.drawImage(ver_box_border , col * this.CELL_W_H     , row * this.CELL_W_H     , this); // left of cell   (box border)
-    				
-    			} else if (box_x == 1 && box_y == 1) { // center of box
-    				g.drawImage(ver_cell_border, col * this.CELL_W_H + (this.CELL_W_H - this.BORDER_W), row * this.CELL_W_H     , this); // right of cell  (cell border)
-    				g.drawImage(hor_cell_border, col * this.CELL_W_H     , row * this.CELL_W_H + (this.CELL_W_H - this.BORDER_W), this); // bottom of cell (cell border)
-    				g.drawImage(ver_cell_border, col * this.CELL_W_H     , row * this.CELL_W_H     , this); // left of cell   (cell border)
-    				g.drawImage(hor_cell_border, col * this.CELL_W_H     , row * this.CELL_W_H     , this); // top of cell    (cell border)
-    				
-    			} else if (box_x == 2 && box_y == 1) { // middle right of box
-    				g.drawImage(hor_cell_border, col * this.CELL_W_H     , row * this.CELL_W_H + (this.CELL_W_H - this.BORDER_W), this); // bottom of cell (cell border)
-    				g.drawImage(ver_cell_border, col * this.CELL_W_H     , row * this.CELL_W_H     , this); // left of cell   (cell border)
-    				g.drawImage(hor_cell_border, col * this.CELL_W_H     , row * this.CELL_W_H     , this); // top of cell    (cell border)
-    				g.drawImage(ver_box_border , col * this.CELL_W_H + (this.CELL_W_H - this.BORDER_W), row * this.CELL_W_H     , this); // right of cell  (box border)
-    				
-    			} else if (box_x == 0 && box_y == 2) { // bottom left of box
-    				g.drawImage(ver_cell_border, col * this.CELL_W_H + (this.CELL_W_H - this.BORDER_W), row * this.CELL_W_H     , this); // right of cell  (cell border)
-    				g.drawImage(hor_cell_border, col * this.CELL_W_H     , row * this.CELL_W_H     , this); // top of cell    (cell border)
-    				g.drawImage(hor_box_border , col * this.CELL_W_H     , row * this.CELL_W_H + (this.CELL_W_H - this.BORDER_W), this); // bottom of cell (box border)
-    				g.drawImage(ver_box_border , col * this.CELL_W_H     , row * this.CELL_W_H     , this); // left of cell   (box border)
-    				
-    			} else if (box_x == 1 && box_y == 2) { // bottom middle of box
-    				g.drawImage(ver_cell_border, col * this.CELL_W_H + (this.CELL_W_H - this.BORDER_W), row * this.CELL_W_H     , this); // right of cell  (cell border)
-    				g.drawImage(ver_cell_border, col * this.CELL_W_H     , row * this.CELL_W_H     , this); // left of cell   (cell border)
-    				g.drawImage(hor_cell_border, col * this.CELL_W_H     , row * this.CELL_W_H     , this); // top of cell    (cell border)
-    				g.drawImage(hor_box_border , col * this.CELL_W_H     , row * this.CELL_W_H + (this.CELL_W_H - this.BORDER_W), this);  // bottom of cell (box border)
-    				
-    			} else if (box_x == 2 && box_y == 2) { // bottom right of box
-    				g.drawImage(ver_cell_border, col * this.CELL_W_H     , row * this.CELL_W_H     , this); // left of cell   (cell border)
-    				g.drawImage(hor_cell_border, col * this.CELL_W_H     , row * this.CELL_W_H     , this); // top of cell    (cell border)
-    				g.drawImage(hor_box_border , col * this.CELL_W_H     , row * this.CELL_W_H + (this.CELL_W_H - this.BORDER_W), this); // bottom of cell (box border)
-    				g.drawImage(ver_box_border , col * this.CELL_W_H + (this.CELL_W_H - this.BORDER_W), row * this.CELL_W_H     , this); // right of cell  (box border)
-
-    			}
-    			
+    			g.drawImage(this.numImgArr[puzzle.puzzleArr[1][row][col]][puzzle.puzzleArr[0][row][col]], num_x, num_y, this);	
     		}
     	}
     	
+    	// draw borders
+    	g.drawImage(this.borders, 0, 0, this);
+    	
+    	// draw completed numbers
     	for (int c = 1; c < 10; c++) {
     		g.drawImage(this.numImgArr[puzzle.completedNums[c-1]][c], (c-1) * this.CELL_W_H, this.CN_Y_OFFSET, this);
     	}
