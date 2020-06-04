@@ -1,10 +1,12 @@
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Font;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.ImageIcon;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 import java.awt.event.MouseAdapter;
@@ -27,8 +29,8 @@ public class Board extends JPanel implements ActionListener {
     private final int BORDER_W = 2;
     
     // global offsets
-    private final int GLOBAL_OFFSET_X = 100;
-    private final int GLOBAL_OFFSET_Y = 100;
+    private final int GLOBAL_OFFSET_X = 200;
+    private final int GLOBAL_OFFSET_Y = 200;
     
     // vertical offset for completed number images
     private final int CN_Y_OFFSET = 460;
@@ -41,6 +43,15 @@ public class Board extends JPanel implements ActionListener {
     
     // cell and box border images
     private Image borders;
+    
+    // completed number red x
+    private Image red_x;
+    
+    // font is only set once
+    private Font f = new Font("Dialog", Font.PLAIN, 50);
+    
+    // combo timer
+    private Timer combo_timer;
     
     
     // initialize puzzle object
@@ -56,6 +67,8 @@ public class Board extends JPanel implements ActionListener {
     private void initBoard() {
         setBackground(Color.blue);
         setFocusable(true);
+        
+        
 
         setPreferredSize(new Dimension(B_WIDTH, B_HEIGHT));
         addMouseListener(new CellsAdapter());
@@ -77,12 +90,8 @@ public class Board extends JPanel implements ActionListener {
     		if (i > 0) {
         		im = new ImageIcon("src/resources/" + i + "c.png");
         		this.numImgArr[3][i] = im.getImage();
-        		im = new ImageIcon("src/resources/" + i + "cc.png");
-        		this.numImgArr[4][i] = im.getImage();
         		im = new ImageIcon("src/resources/" + i + "ch.png");
-        		this.numImgArr[5][i] = im.getImage();
-        		im = new ImageIcon("src/resources/" + i + "cch.png");
-        		this.numImgArr[6][i] = im.getImage();
+        		this.numImgArr[4][i] = im.getImage();
     		}
 
     	}
@@ -91,8 +100,11 @@ public class Board extends JPanel implements ActionListener {
         
         // load borders image
         im = new ImageIcon("src/resources/box_and_cell_borders.png");
-        borders = im.getImage();
-   
+        this.borders = im.getImage();
+        
+        // load red x image
+        im = new ImageIcon("src/resources/red_x.png");
+        this.red_x = im.getImage();
         
     }
 
@@ -121,7 +133,8 @@ public class Board extends JPanel implements ActionListener {
     			// paint this image at corresponding coords
     			int num_x = col * this.CELL_W_H + this.BORDER_W + this.GLOBAL_OFFSET_X;
     			int num_y = row * this.CELL_W_H + this.BORDER_W + this.GLOBAL_OFFSET_Y;
-    			g.drawImage(this.numImgArr[puzzle.puzzleArr[1][row][col]][puzzle.puzzleArr[0][row][col]], num_x, num_y, this);	
+    			g.drawImage(this.numImgArr[puzzle.puzzleArr[1][row][col]][puzzle.puzzleArr[0][row][col]], 
+    					num_x, num_y, this);	
     		}
     	}
     	
@@ -130,8 +143,22 @@ public class Board extends JPanel implements ActionListener {
     	
     	// draw completed numbers
     	for (int c = 1; c < 10; c++) {
-    		g.drawImage(this.numImgArr[puzzle.completedNums[c-1]][c], (c-1) * this.CELL_W_H + this.GLOBAL_OFFSET_X, this.CN_Y_OFFSET + this.GLOBAL_OFFSET_Y, this);
+    		g.drawImage(this.numImgArr[puzzle.refNums[c-1]][c], 
+    				(c-1) * this.CELL_W_H + this.GLOBAL_OFFSET_X, 
+    				this.CN_Y_OFFSET + this.GLOBAL_OFFSET_Y, this);
+    		
+    		// draw red_x over it if number is completed
+    		if (puzzle.completedNums[c-1]) {
+        		g.drawImage(this.red_x, 
+        				(c-1) * this.CELL_W_H + this.GLOBAL_OFFSET_X, 
+        				this.CN_Y_OFFSET + this.GLOBAL_OFFSET_Y, this);
+    		}
     	}
+    	    	
+    	g.setFont(this.f);
+    	g.setColor(Color.orange);
+    	g.drawString("COMBO COUNT:", this.GLOBAL_OFFSET_X, 100);
+    	g.drawString("COMBO TIMER:", this.GLOBAL_OFFSET_X, 175);
     }
 
     @Override

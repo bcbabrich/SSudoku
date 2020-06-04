@@ -13,8 +13,8 @@ public class Puzzle {
 	int [][][] puzzleArr = new int[2][9][9];
 	
 	// array for completed number types
-	// number type can only be highlighted if it is not yet complete
-	int [] completedNums = new int[] {3,3,3,3,3,3,3,3,3};
+	int [] refNums = new int[] {3,3,3,3,3,3,3,3,3};
+	boolean [] completedNums = new boolean[] {false, false, false, false, false, false, false, false, false};
 	
 	// puzzle constructor
 	// populates fileArray from file at filename
@@ -26,6 +26,7 @@ public class Puzzle {
     
     private void resetHighlights() {
     	for (int row = 0; row < 9; row++) {
+    		this.refNums[row] = 3;
 			for (int col = 0; col < 9; col++) {
 				this.puzzleArr[1][row][col] = 0;
 			}
@@ -113,22 +114,13 @@ public class Puzzle {
     		}
     		
     		// COMPLETED NUMS HIGHLIGHTING
-    		
-			// first, reset any highlights in completedNums
 			for (int i = 0; i < 9; i++) {
-				if (this.completedNums[i] == 5) {
-					this.completedNums[i] = 3;
-				} else if (this.completedNums[i] == 6) {
-					this.completedNums[i] = 4;
+				if (i != numType - 1) { // reset any already existing highlights in refNums
+					this.refNums[i] = 3;
+				} else {
+					this.refNums[i] = 4;
 				}
 			}
-			
-			
-    		if (this.completedNums[numType - 1] == 4) {
-    			this.completedNums[numType - 1] = 6;
-    		} else {
-    			this.completedNums[numType - 1] = 5;
-    		}
     		
     	} else if (numType == -1) {
     		// click occurred outside of puzzle,
@@ -176,9 +168,7 @@ public class Puzzle {
 			}
 		}
 		
-		if (inAllBoxes) {
-			this.completedNums[numType - 1] = 6;
-		}
+		this.completedNums[numType - 1] = inAllBoxes;
     	
     }
     
