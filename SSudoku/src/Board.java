@@ -50,9 +50,18 @@ public class Board extends JPanel implements ActionListener {
     // font is only set once
     private Font f = new Font("Dialog", Font.PLAIN, 50);
     
-    // combo timer
-    private Timer combo_timer;
+    // combo timer variables
+    private int activeNumType = -1;
+    private long start_time;
+    private long end_time;
+    private int combo_timer = 0;
+    private int interim_time = 0;
+    private int combo_counter = 0;
     
+    // global timer
+    
+    // score counter
+    private int score = 0;
     
     // initialize puzzle object
     // FILENAME SHOULD NOT BE PASSED IN HERE
@@ -123,10 +132,9 @@ public class Board extends JPanel implements ActionListener {
         doDrawing(g);
     }
     
+    // DO DRAWING
     private void doDrawing(Graphics g) {
-    	
-    	
-    	// draw numbers from puzzle array
+    	// NUMBER CELLS
     	for (int row = 0; row < 9; row++) {
     		for (int col = 0; col < 9; col++) {
     			// paint image corresponding to value in puzzle array
@@ -138,10 +146,10 @@ public class Board extends JPanel implements ActionListener {
     		}
     	}
     	
-    	// draw borders
+    	// BORDERS
     	g.drawImage(this.borders, this.GLOBAL_OFFSET_X, this.GLOBAL_OFFSET_Y, this);
     	
-    	// draw completed numbers
+    	// REFERENCE NUMBERS
     	for (int c = 1; c < 10; c++) {
     		g.drawImage(this.numImgArr[puzzle.refNums[c-1]][c], 
     				(c-1) * this.CELL_W_H + this.GLOBAL_OFFSET_X, 
@@ -154,11 +162,37 @@ public class Board extends JPanel implements ActionListener {
         				this.CN_Y_OFFSET + this.GLOBAL_OFFSET_Y, this);
     		}
     	}
-    	    	
+    	
+    	// COMBO TIMER + COUNTER
     	g.setFont(this.f);
     	g.setColor(Color.orange);
     	g.drawString("COMBO COUNT:", this.GLOBAL_OFFSET_X, 100);
+    	g.drawString("" + this.combo_counter, this.GLOBAL_OFFSET_X + 400, 100);
     	g.drawString("COMBO TIMER:", this.GLOBAL_OFFSET_X, 175);
+    	
+    	int time_elapsed = (int) ((System.currentTimeMillis() - this.start_time) / 1000 );
+    	
+    	if (this.activeNumType != -1 && time_elapsed != this.interim_time) {
+    		this.combo_timer--;
+    		this.interim_time = time_elapsed;
+    	} else if (this.activeNumType != -1 && this.combo_timer <= 0) {
+    		this.activeNumType = -1;
+    	}
+    	
+    	g.drawString("" + this.combo_timer, this.GLOBAL_OFFSET_X + 375, 175);
+    	
+    	// SCORE
+    	if (this.combo_timer == 0) {
+    		this.score += this.combo_counter * 5;
+    		this.combo_counter = 0;
+    	}
+    	
+    	g.setColor(Color.red);
+    	g.drawString("score:", this.GLOBAL_OFFSET_X, 775);
+    	g.drawString("" + this.score, this.GLOBAL_OFFSET_X + 150, 775);
+    	
+
+    	
     }
 
     @Override
@@ -237,7 +271,26 @@ public class Board extends JPanel implements ActionListener {
         					// check if this number type is now completed
         					puzzle.setCompletedNumTypes(numToEnter);
         					
+        					// update combo counter/timer
+        					if (activeNumType  == -1) {
+        						activeNumType = numToEnter;
+        						combo_timer = 7;
+        						combo_counter++;
+        						start_time = System.currentTimeMillis();
+        					} else if (activeNumType == numToEnter) {
+        						combo_counter++;
+        						combo_timer = 7;
+        					}
+        					
+        					if (puzzle.completedNums[numToEnter - 1]) {
+        						combo_timer = 0;
+        						score += combo_counter * 5;
+        					}
+        					
+        					
         					repaint();
+        					
+        					break;
         				}
         			}
         		}
