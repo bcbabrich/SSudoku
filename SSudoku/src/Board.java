@@ -1,6 +1,8 @@
+import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Font;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
@@ -37,9 +39,15 @@ public class Board extends JPanel implements ActionListener {
 
     private Timer timer;
     
-    // unhighlighted number image objects go in here
-    // 10 and not 9 because we include 0
-    private Image numImgArr[][] = new Image[7][10];
+    // number tiles (unhighlighted)
+    // 10 and not 9 because we include 0 
+    private Image numTiles[] = new Image[10];
+    
+    // highlighted blank tile
+    private Image blankHighlightedTile;
+    
+    // reference circles down at the bottom of the board
+    private Image refCircles[] = new Image [9];
     
     // cell and box border images
     private Image borders;
@@ -47,26 +55,34 @@ public class Board extends JPanel implements ActionListener {
     // completed number red x
     private Image red_x;
     
+    // game over message
+    private Image game_over;
+    
     // font is only set once
     private Font f = new Font("Dialog", Font.PLAIN, 50);
     
     // combo timer variables
     private int activeNumType = -1;
-    private long start_time;
+    private long start_time = System.currentTimeMillis();;
     private long end_time;
     private int combo_timer = 0;
     private int interim_time = 0;
     private int combo_counter = 0;
     
     // global timer
+    private int global_timer = 0;
+    private int final_time;
     
     // score counter
     private int score = 0;
+    
+    private Color BGCOL = new Color(188, 184, 255);
     
     // initialize puzzle object
     // FILENAME SHOULD NOT BE PASSED IN HERE
     // IN THE FUTURE IT WILL BE SET ELSEWHERE
     private Puzzle puzzle = new Puzzle("puzzle_1");
+    
 
     public Board() {
         
@@ -74,11 +90,8 @@ public class Board extends JPanel implements ActionListener {
     }
     
     private void initBoard() {
-        setBackground(Color.blue);
+        setBackground(this.BGCOL);
         setFocusable(true);
-        
-        
-
         setPreferredSize(new Dimension(B_WIDTH, B_HEIGHT));
         addMouseListener(new CellsAdapter());
         addKeyListener(new TAdapter());
@@ -88,24 +101,20 @@ public class Board extends JPanel implements ActionListener {
 
     private void loadImages() {
 
-    	// load number images
-    	// 10 and not 9 because we include 0
+    	// load tiles
     	ImageIcon im;
     	for (int i = 0; i < 10; i++) {
     		im = new ImageIcon("src/resources/" + i + ".png");
-    		this.numImgArr[0][i] = im.getImage();
-    		im = new ImageIcon("src/resources/" + i + "h.png");
-    		this.numImgArr[1][i] = im.getImage();
+    		this.numTiles[i] = im.getImage();
     		if (i > 0) {
         		im = new ImageIcon("src/resources/" + i + "c.png");
-        		this.numImgArr[3][i] = im.getImage();
-        		im = new ImageIcon("src/resources/" + i + "ch.png");
-        		this.numImgArr[4][i] = im.getImage();
+        		this.refCircles[i-1] = im.getImage();
     		}
-
     	}
+    	
+    	// load blank highlighted tile
     	im = new ImageIcon("src/resources/0s.png");
-    	this.numImgArr[2][0] = im.getImage();
+    	this.blankHighlightedTile = im.getImage();
         
         // load borders image
         im = new ImageIcon("src/resources/box_and_cell_borders.png");
@@ -114,6 +123,10 @@ public class Board extends JPanel implements ActionListener {
         // load red x image
         im = new ImageIcon("src/resources/red_x.png");
         this.red_x = im.getImage();
+        
+        // load game over image
+        im = new ImageIcon("src/resources/game_over.png");
+        this.game_over = im.getImage();
         
     }
 
@@ -134,15 +147,37 @@ public class Board extends JPanel implements ActionListener {
     
     // DO DRAWING
     private void doDrawing(Graphics g) {
-    	// NUMBER CELLS
+    	// highlighting variables
+    	// TODO: these should probably be global
+    	g.setColor(Color.red);
+    	AlphaComposite alcom = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3f);
+    	Graphics2D g2d = (Graphics2D) g.create();
+    	g2d.setComposite(alcom);
+    	
+    	// TILES AND TILE HIGHLIGHTS
     	for (int row = 0; row < 9; row++) {
     		for (int col = 0; col < 9; col++) {
-    			// paint image corresponding to value in puzzle array
-    			// paint this image at corresponding coords
+    			
+    			// map board cell coords to pixel coords
     			int num_x = col * this.CELL_W_H + this.BORDER_W + this.GLOBAL_OFFSET_X;
     			int num_y = row * this.CELL_W_H + this.BORDER_W + this.GLOBAL_OFFSET_Y;
-    			g.drawImage(this.numImgArr[puzzle.puzzleArr[1][row][col]][puzzle.puzzleArr[0][row][col]], 
-    					num_x, num_y, this);	
+    			
+    			// draw tiles
+    			g.drawImage(this.numTiles[puzzle.puzzleArr[0][row][col]], 
+    													num_x, num_y, this);
+    			
+    			// draw blank highlighted tile
+    			if(this.puzzle.puzzleArr[1][row][col] == 2) {
+    				g.drawImage(this.blankHighlightedTile, num_x, num_y, this);
+    			}
+    			
+    			// draw highlights
+    			if (this.puzzle.puzzleArr[1][row][col] == 1) {
+    				g2d.fillRect(col * this.CELL_W_H + this.BORDER_W + this.GLOBAL_OFFSET_X, 
+    						row * this.CELL_W_H + this.BORDER_W + this.GLOBAL_OFFSET_X, 
+    						48, 48); // magic numbers?
+    			}
+    			
     		}
     	}
     	
@@ -150,27 +185,51 @@ public class Board extends JPanel implements ActionListener {
     	g.drawImage(this.borders, this.GLOBAL_OFFSET_X, this.GLOBAL_OFFSET_Y, this);
     	
     	// REFERENCE NUMBERS
-    	for (int c = 1; c < 10; c++) {
-    		g.drawImage(this.numImgArr[puzzle.refNums[c-1]][c], 
-    				(c-1) * this.CELL_W_H + this.GLOBAL_OFFSET_X, 
-    				this.CN_Y_OFFSET + this.GLOBAL_OFFSET_Y, this);
+    	for (int c = 0; c < 9; c++) {
+    		// draw reference circles
+    		g.drawImage(this.refCircles[c], 
+    						c * this.CELL_W_H + this.GLOBAL_OFFSET_X, 
+    						this.CN_Y_OFFSET + this.GLOBAL_OFFSET_Y, this);
     		
-    		// draw red_x over it if number is completed
-    		if (puzzle.completedNums[c-1]) {
+    		// draw ref circle highlights
+    		if (c+1 == this.puzzle.highlightedNumType) {
+    			g2d.fillOval(c * this.CELL_W_H + this.GLOBAL_OFFSET_X - 1,
+            			this.CN_Y_OFFSET + this.GLOBAL_OFFSET_Y - 1,
+            			49, 49);
+    		}
+    		
+    		// draw red_x if number is completed
+    		if (this.puzzle.completedNums[c]) {
         		g.drawImage(this.red_x, 
-        				(c-1) * this.CELL_W_H + this.GLOBAL_OFFSET_X, 
+        				c * this.CELL_W_H + this.GLOBAL_OFFSET_X, 
         				this.CN_Y_OFFSET + this.GLOBAL_OFFSET_Y, this);
     		}
+    		
     	}
     	
-    	// COMBO TIMER + COUNTER
+    	// GLOBAL TIMER
     	g.setFont(this.f);
-    	g.setColor(Color.orange);
+    	g.setColor(Color.white);
+    	g.drawString("time:", 10, 50);
+    	if (!this.puzzle.end_game) {
+    		g.drawString("" + this.global_timer, 150, 50);
+    	} else {
+    		g.drawString("" + this.final_time, 150, 50);
+    	}
+    	
+    	
+    	
+    	// COMBO TIMER + COUNTER
+    	g.setColor(Color.blue);
     	g.drawString("COMBO COUNT:", this.GLOBAL_OFFSET_X, 100);
     	g.drawString("" + this.combo_counter, this.GLOBAL_OFFSET_X + 400, 100);
     	g.drawString("COMBO TIMER:", this.GLOBAL_OFFSET_X, 175);
     	
     	int time_elapsed = (int) ((System.currentTimeMillis() - this.start_time) / 1000 );
+    	this.global_timer = time_elapsed;
+    	if (!this.puzzle.end_game) {
+    		this.final_time = this.global_timer;
+    	}
     	
     	if (this.activeNumType != -1 && time_elapsed != this.interim_time) {
     		this.combo_timer--;
@@ -182,16 +241,22 @@ public class Board extends JPanel implements ActionListener {
     	g.drawString("" + this.combo_timer, this.GLOBAL_OFFSET_X + 375, 175);
     	
     	// SCORE
-    	if (this.combo_timer == 0) {
+    	if (this.combo_timer == 0) { // this should really be somewhere else...
     		this.score += this.combo_counter * 5;
     		this.combo_counter = 0;
     	}
     	
     	g.setColor(Color.red);
-    	g.drawString("score:", this.GLOBAL_OFFSET_X, 775);
-    	g.drawString("" + this.score, this.GLOBAL_OFFSET_X + 150, 775);
-    	
-
+    	puzzle.check_EGS();
+    	if (puzzle.end_game) {
+    		g.drawImage(this.game_over, this.GLOBAL_OFFSET_X, this.GLOBAL_OFFSET_Y + 100, this);
+    		g.drawString(this.score + " - " + this.final_time + " = " + (this.score - this.final_time), 
+    				this.GLOBAL_OFFSET_X + 50, 
+    				this.GLOBAL_OFFSET_Y + 325);
+    	} else {
+        	g.drawString("score:", this.GLOBAL_OFFSET_X, 775);
+        	g.drawString("" + this.score, this.GLOBAL_OFFSET_X + 150, 775);
+    	}
     	
     }
 
@@ -226,33 +291,15 @@ public class Board extends JPanel implements ActionListener {
         	int numToEnter = -1;
         	
             switch(e.getKeyCode()) {
-            	case KeyEvent.VK_1:
-            		numToEnter = 1;
-            		break;
-            	case KeyEvent.VK_2:
-            		numToEnter = 2;
-            		break;
-            	case KeyEvent.VK_3:
-            		numToEnter = 3;
-            		break;
-            	case KeyEvent.VK_4:
-            		numToEnter = 4;
-            		break;
-            	case KeyEvent.VK_5:
-            		numToEnter = 5;
-            		break;
-            	case KeyEvent.VK_6:
-            		numToEnter = 6;
-            		break;
-            	case KeyEvent.VK_7:
-            		numToEnter = 7;
-            		break;
-            	case KeyEvent.VK_8:
-            		numToEnter = 8;
-            		break;
-            	case KeyEvent.VK_9:
-            		numToEnter = 9;
-            		break;
+            	case KeyEvent.VK_1: numToEnter = 1; break;
+            	case KeyEvent.VK_2: numToEnter = 2; break;
+            	case KeyEvent.VK_3: numToEnter = 3; break;
+            	case KeyEvent.VK_4: numToEnter = 4; break;
+            	case KeyEvent.VK_5: numToEnter = 5; break;
+            	case KeyEvent.VK_6: numToEnter = 6; break;
+            	case KeyEvent.VK_7: numToEnter = 7; break;
+            	case KeyEvent.VK_8: numToEnter = 8; break;
+            	case KeyEvent.VK_9: numToEnter = 9; break;
             }
             
             // if a numeric key from [1-9] was entered,
@@ -272,11 +319,10 @@ public class Board extends JPanel implements ActionListener {
         					puzzle.setCompletedNumTypes(numToEnter);
         					
         					// update combo counter/timer
-        					if (activeNumType  == -1) {
+        					if (activeNumType == -1) {
         						activeNumType = numToEnter;
         						combo_timer = 7;
         						combo_counter++;
-        						start_time = System.currentTimeMillis();
         					} else if (activeNumType == numToEnter) {
         						combo_counter++;
         						combo_timer = 7;

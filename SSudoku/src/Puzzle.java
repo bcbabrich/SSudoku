@@ -13,7 +13,7 @@ public class Puzzle {
 	int [][][] puzzleArr = new int[2][9][9];
 	
 	// array for completed number types
-	int [] refNums = new int[] {3,3,3,3,3,3,3,3,3};
+	int highlightedNumType = -1; // -1 so no tiles are highlighted by default (?)
 	boolean [] completedNums = new boolean[] {false, false, false, false, false, false, false, false, false};
 	
 	// puzzle constructor
@@ -24,9 +24,21 @@ public class Puzzle {
 
     }
     
+    // if board is filled up, game is over
+    public boolean end_game = false;
+    public void check_EGS() {
+    	this.end_game = true;
+    	for (int row = 0; row < 9; row++) {
+			for (int col = 0; col < 9; col++) {
+				if (this.puzzleArr[0][row][col] == 0) {
+					this.end_game = false;
+				}
+			}
+		}
+    }
+    
     private void resetHighlights() {
     	for (int row = 0; row < 9; row++) {
-    		this.refNums[row] = 3;
 			for (int col = 0; col < 9; col++) {
 				this.puzzleArr[1][row][col] = 0;
 			}
@@ -66,32 +78,26 @@ public class Puzzle {
     
     // given x, y CELL coordinates game board, set highlight dimension of puzzleArr accordingly
     void setHighlights(int cell_x, int cell_y) {
-    	// get number clicked on
-    	// numType = -1 means click occurred outside of puzzle
-    	int numType;
-    	
     	// check where click hit
-    	//    - click occurred outside of puzzle
-    	if ( cell_x > 8 || cell_y > 8) { 
-    		numType = -1;
+    	if ( cell_x > 8 || cell_y > 8) { //click occurred outside of puzzle
+    		highlightedNumType = -1;
     		
-    	//     - click occurred inside of puzzle
-    	} else {                        
+    	} else {  // click occurred inside of puzzle
     		// as noted above, the y axis comes before the x axis due to file reading conventions
-    		numType = this.puzzleArr[0][cell_y][cell_x];
-    		
+    		// TODO: Write y vs x axis explanation in confluence
+    		highlightedNumType = this.puzzleArr[0][cell_y][cell_x];
     		
     	}
     	
     	// if a non-blank spot was clicked on, set the highlighting dimension accordingly
-    	if (numType > 0) {
+    	if (highlightedNumType > 0) {
     		this.resetHighlights();
     		
     		// loop over all spots in puzzleArr
     		for (int row = 0; row < 9; row++) {
     			for (int col = 0; col < 9; col++) {
-    				// highlight row, column, and box of any index matching numType
-    				if (this.puzzleArr[0][row][col] == numType) {
+    				// highlight row, column, and box of any index matching highlightedNumType
+    				if (this.puzzleArr[0][row][col] == highlightedNumType) {
     					// row highlighting
     					for (int i = 0; i < 9; i++) {
     						this.puzzleArr[1][row][i] = 1;
@@ -108,25 +114,20 @@ public class Puzzle {
     							this.puzzleArr[1][box_y + row - (row % 3)][box_x + col - (col % 3)] = 1;
     						}
     					}
+    					
+    					// TODO: SSUD-6
+    				} else if (this.puzzleArr[0][row][col] != 0) {
+    					this.puzzleArr[1][row][col] = 1;
     				}
     				
     			}
     		}
     		
-    		// COMPLETED NUMS HIGHLIGHTING
-			for (int i = 0; i < 9; i++) {
-				if (i != numType - 1) { // reset any already existing highlights in refNums
-					this.refNums[i] = 3;
-				} else {
-					this.refNums[i] = 4;
-				}
-			}
-    		
-    	} else if (numType == -1) {
+    	} else if (highlightedNumType == -1) {
     		// click occurred outside of puzzle,
     		this.resetHighlights();
     		
-    	} else if (numType == 0){
+    	} else if (highlightedNumType == 0){
     		// clear any previously selected cells
         	for (int row = 0; row < 9; row++) {
     			for (int col = 0; col < 9; col++) {
@@ -147,7 +148,7 @@ public class Puzzle {
     	}
     }
     
-    void setCompletedNumTypes(int numType) {
+    void setCompletedNumTypes(int highlightedNumType) {
     	boolean inAllBoxes = true;
 		for (int box_row = 0; box_row < 3; box_row++) {
 			for (int box_col = 0; box_col < 3; box_col++) {
@@ -155,7 +156,7 @@ public class Puzzle {
 				boolean inCurBox = false;
 				for (int box_x = 0; box_x < 3; box_x++) {
 					for (int box_y = 0; box_y < 3; box_y++) {
-						if (this.puzzleArr[0][(box_col * 3) + box_y][(box_row * 3) + box_x] == numType) {
+						if (this.puzzleArr[0][(box_col * 3) + box_y][(box_row * 3) + box_x] == highlightedNumType) {
 							inCurBox = true;
 						}
 					}
@@ -168,7 +169,7 @@ public class Puzzle {
 			}
 		}
 		
-		this.completedNums[numType - 1] = inAllBoxes;
+		this.completedNums[highlightedNumType - 1] = inAllBoxes;
     	
     }
     
