@@ -66,7 +66,9 @@ public class Board extends JPanel implements ActionListener {
     // score counter
     private int score = 0;
     
+    // TODO: Better descriptions for these
     private Color BGCOL = new Color(188, 184, 255);
+    
     
     // combo and timer object
     private combo_and_timer combotimer = new combo_and_timer();
@@ -140,12 +142,9 @@ public class Board extends JPanel implements ActionListener {
     
     // DO DRAWING
     private void doDrawing(Graphics g) {
-    	// highlighting variables
-    	// TODO: these should probably be global
+    	// initialize graphics objects
     	g.setColor(Color.red);
-    	AlphaComposite alcom = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3f);
     	Graphics2D g2d = (Graphics2D) g.create();
-    	g2d.setComposite(alcom);
     	
     	// DRAW TILES AND TILE HIGHLIGHTS
     	for (int row = 0; row < 9; row++) {
@@ -165,6 +164,14 @@ public class Board extends JPanel implements ActionListener {
     			}
     			
     			// draw highlights
+    			float opacity = this.combotimer.combo_timer == 0 && 
+    							this.puzzle.highlightedNumType != 0 &&
+    							this.puzzle.highlightedNumType != -1 ?
+    							0.3f : ((float)this.combotimer.combo_timer / 7);
+    			System.out.println(this.puzzle.highlightedNumType);
+    			
+    			AlphaComposite alcom = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, opacity);
+    	    	g2d.setComposite(alcom);
     			if (this.puzzle.puzzleArr[1][row][col] == 1) {
     				g2d.fillRect(col * this.CELL_W_H + this.BORDER_W + this.GLOBAL_OFFSET_X, 
     						row * this.CELL_W_H + this.BORDER_W + this.GLOBAL_OFFSET_X, 
@@ -187,7 +194,7 @@ public class Board extends JPanel implements ActionListener {
     		// draw ref circle highlights
     		int refNumToHL = this.puzzle.highlightedNumType == 0 // keep ref num highlighted when blank spot is clicked on
     						? this.puzzle.prev_highlighted 
-    						: this.puzzle.highlightedNumType;
+    						: this.puzzle.highlightedNumType; 
     		if (c+1 == refNumToHL) {
     			g2d.fillOval(c * this.CELL_W_H + this.GLOBAL_OFFSET_X - 1,
             			this.CN_Y_OFFSET + this.GLOBAL_OFFSET_Y - 1,
@@ -366,6 +373,7 @@ public class Board extends JPanel implements ActionListener {
         	}
         	
         	// if all numbers are filled in for active num type, combo ends
+        	// TODO: should be a catch-all "combo ended" block
         	if (this.activeNumType != -1 
         			&& puzzle.completedNums[this.activeNumType - 1]) {
 				this.combo_timer = 0;
