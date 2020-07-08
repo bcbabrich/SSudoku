@@ -14,6 +14,7 @@ public class Puzzle {
 	
 	// array for completed number types
 	int highlightedNumType = -1; // -1 so no tiles are highlighted by default (?)
+	int prev_highlighted = highlightedNumType;
 	boolean [] completedNums = new boolean[] {false, false, false, false, false, false, false, false, false};
 	
 	// puzzle constructor
@@ -78,26 +79,31 @@ public class Puzzle {
     
     // given x, y CELL coordinates game board, set highlight dimension of puzzleArr accordingly
     void setHighlights(int cell_x, int cell_y) {
+    	// since we're about to change currently highlighted num type,
+    	// save its current state for blank spot reference circle highlighting below
+    	if (highlightedNumType != -1) {
+    		this.prev_highlighted = this.highlightedNumType;
+    	}
+    	
     	// check where click hit
     	if ( cell_x > 8 || cell_y > 8) { //click occurred outside of puzzle
-    		highlightedNumType = -1;
+    		this.highlightedNumType = -1;
     		
     	} else {  // click occurred inside of puzzle
     		// as noted above, the y axis comes before the x axis due to file reading conventions
     		// TODO: Write y vs x axis explanation in confluence
-    		highlightedNumType = this.puzzleArr[0][cell_y][cell_x];
-    		
+    		this.highlightedNumType = this.puzzleArr[0][cell_y][cell_x];
     	}
     	
     	// if a non-blank spot was clicked on, set the highlighting dimension accordingly
-    	if (highlightedNumType > 0) {
+    	if (this.highlightedNumType > 0) {
     		this.resetHighlights();
     		
     		// loop over all spots in puzzleArr
     		for (int row = 0; row < 9; row++) {
     			for (int col = 0; col < 9; col++) {
     				// highlight row, column, and box of any index matching highlightedNumType
-    				if (this.puzzleArr[0][row][col] == highlightedNumType) {
+    				if (this.puzzleArr[0][row][col] == this.highlightedNumType) {
     					// row highlighting
     					for (int i = 0; i < 9; i++) {
     						this.puzzleArr[1][row][i] = 1;
@@ -123,11 +129,11 @@ public class Puzzle {
     			}
     		}
     		
-    	} else if (highlightedNumType == -1) {
+    	} else if (this.highlightedNumType == -1) {
     		// click occurred outside of puzzle,
     		this.resetHighlights();
     		
-    	} else if (highlightedNumType == 0){
+    	} else if (this.highlightedNumType == 0){
     		// clear any previously selected cells
         	for (int row = 0; row < 9; row++) {
     			for (int col = 0; col < 9; col++) {
@@ -172,5 +178,7 @@ public class Puzzle {
 		this.completedNums[highlightedNumType - 1] = inAllBoxes;
     	
     }
+    
+    
     
 }
