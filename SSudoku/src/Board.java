@@ -54,6 +54,9 @@ public class Board extends JPanel implements ActionListener {
     // cell and box border images
     private Image borders;
     
+    // sparks images
+    private Image sparks_0;
+    
     // completed number red x
     private Image red_x;
     
@@ -123,6 +126,9 @@ public class Board extends JPanel implements ActionListener {
         im = new ImageIcon("src/resources/game_over.png");
         this.game_over = im.getImage();
         
+        // load sparks image
+        im = new ImageIcon("src/resources/Sparks_0.png");
+        this.sparks_0 = im.getImage();
     }
 
     private void initGame() {
@@ -223,26 +229,12 @@ public class Board extends JPanel implements ActionListener {
     		g.drawString("" + this.combotimer.final_time, 150, 50);
     	}
     	
-    	// line sandbox
-    	
     	
     	// DRAW COMBO TIMER + COUNTER
     	if (this.combotimer.activeNumType != -1) {
     		// animation for text first appearing
-    		if (this.combotimer.combo_timer == 7 || this.combotimer.combo_timer == 6) {
-	    		int x2 = 90;
-	    		int y2 = 500;
-	    		int x1 = 90;
-	    		// tenths: how many tenths of a second are currently on the global timer
-	    		double tenths = (double)(((int)(System.currentTimeMillis() - this.combotimer.start_time)/100)%10)/10;
-	    		int len = 100; // length of "spark"
-	    		int y1 = y2 + (len - (int)(len * tenths));
-	    		System.out.println("y1: " + y1);
-	    		System.out.println("y2: " + y2);
-	    		System.out.println("---------");
-	    		g.drawLine(x1, y1, x2, y2);
-    		}
-    		
+    		// wrap this in some sort of if statement for final animation
+    		g.drawImage(this.sparks_0, this.GLOBAL_OFFSET_X - 155, this.GLOBAL_OFFSET_Y - 215, this);
     		
     		
     		g.setColor(Color.blue);
@@ -366,18 +358,18 @@ public class Board extends JPanel implements ActionListener {
         boolean combo_just_finished;
     	
     	public combo_and_timer() {
-    		activeNumType = -1;
-    	    start_time = System.currentTimeMillis();
-    	    combo_timer = 0;
-    	    interim_time = 0; // what does this do?
-    	    combo_counter = 0;
-    	    combo_just_finished = false;
+    		this.activeNumType = -1;
+    		this.start_time = System.currentTimeMillis();
+    	    this.combo_timer = 0;
+    	    this.interim_time = 0; // what does this do?
+    	    this.combo_counter = 0;
+    	    this.combo_just_finished = false;
     	}
     	
     	// documentation
     	public void update() {
     		// update global timer
-    		this.global_timer = (int) ((System.currentTimeMillis() - this.start_time) / 1000 );
+    		this.global_timer = (int) ((System.currentTimeMillis() - this.start_time) / 1000 );    		
         	
         	// update combo timer when there is an active number
         	if (this.activeNumType != -1 && this.global_timer != this.interim_time) {
