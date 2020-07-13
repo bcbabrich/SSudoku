@@ -61,7 +61,7 @@ public class Board extends JPanel implements ActionListener {
     private Image game_over;
     
     // font is only set once
-    private Font f = new Font("Dialog", Font.PLAIN, 50);
+    private Font f = new Font("Impact", Font.PLAIN, 50);
     
     // score counter
     private int score = 0;
@@ -164,12 +164,12 @@ public class Board extends JPanel implements ActionListener {
     			}
     			
     			// draw highlights
-    			float opacity = this.combotimer.combo_timer == 0 && 
-    							this.puzzle.highlightedNumType != 0 &&
-    							this.puzzle.highlightedNumType != -1 ?
-    							0.3f : ((float)this.combotimer.combo_timer / 7);
-    			System.out.println(this.puzzle.highlightedNumType);
-    			
+    			boolean vanilla_hl = false;
+    			float opacity = 0.3f;
+    			if (!vanilla_hl) {
+    				opacity = this.combotimer.activeNumType == -1 ?
+							0.3f : ((float)this.combotimer.combo_timer / 7);
+    			}
     			AlphaComposite alcom = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, opacity);
     	    	g2d.setComposite(alcom);
     			if (this.puzzle.puzzleArr[1][row][col] == 1) {
@@ -223,12 +223,35 @@ public class Board extends JPanel implements ActionListener {
     		g.drawString("" + this.combotimer.final_time, 150, 50);
     	}
     	
+    	// line sandbox
+    	
+    	
     	// DRAW COMBO TIMER + COUNTER
-    	g.setColor(Color.blue);
-    	g.drawString("COMBO COUNT:", this.GLOBAL_OFFSET_X, 100); 
-    	g.drawString("" + this.combotimer.combo_counter, this.GLOBAL_OFFSET_X + 400, 100);
-    	g.drawString("COMBO TIMER:", this.GLOBAL_OFFSET_X, 175);
-    	g.drawString("" + this.combotimer.combo_timer, this.GLOBAL_OFFSET_X + 375, 175);
+    	if (this.combotimer.activeNumType != -1) {
+    		// animation for text first appearing
+    		if (this.combotimer.combo_timer == 7 || this.combotimer.combo_timer == 6) {
+	    		int x2 = 90;
+	    		int y2 = 500;
+	    		int x1 = 90;
+	    		// tenths: how many tenths of a second are currently on the global timer
+	    		double tenths = (double)(((int)(System.currentTimeMillis() - this.combotimer.start_time)/100)%10)/10;
+	    		int len = 100; // length of "spark"
+	    		int y1 = y2 + (len - (int)(len * tenths));
+	    		System.out.println("y1: " + y1);
+	    		System.out.println("y2: " + y2);
+	    		System.out.println("---------");
+	    		g.drawLine(x1, y1, x2, y2);
+    		}
+    		
+    		
+    		
+    		g.setColor(Color.blue);
+        	g.drawString("Combo Count:", this.GLOBAL_OFFSET_X, 100); 
+        	g.drawString("" + this.combotimer.combo_counter, this.GLOBAL_OFFSET_X + 400, 100);
+        	g.drawString("Combo Timer:", this.GLOBAL_OFFSET_X, 175);
+        	g.drawString("" + this.combotimer.combo_timer, this.GLOBAL_OFFSET_X + 375, 175);
+    	}
+    	
     	
     	// DRAW SCORE
     	g.setColor(Color.red);
@@ -265,6 +288,9 @@ public class Board extends JPanel implements ActionListener {
             x = x < GLOBAL_OFFSET_X ? GLOBAL_OFFSET_X + CELL_W_H * 9 : x; // prevent negative cell coords
             y = y < GLOBAL_OFFSET_Y ? GLOBAL_OFFSET_Y + CELL_W_H * 9 : y;
             puzzle.setHighlights((x - GLOBAL_OFFSET_X) / CELL_W_H, (y - GLOBAL_OFFSET_X) / CELL_W_H);
+            
+            // potential for new combo
+            combotimer.combo_just_finished = false;
 
             }
         }
@@ -308,6 +334,8 @@ public class Board extends JPanel implements ActionListener {
         						combotimer.activeNumType = numToEnter;
         						combotimer.combo_timer = 7;
         						combotimer.combo_counter++;
+        						System.out.println("combo just started");
+        						combotimer.combo_just_finished = true; // TODO: this name is confusing as hell?
         					} 
         					
         					// combo is alive and corresponding num is entered
@@ -335,6 +363,7 @@ public class Board extends JPanel implements ActionListener {
         private int combo_counter; // self-explanatory
         private int global_timer;  // ... time game has been running
         private int final_time;    // final time for game over screen
+        boolean combo_just_finished;
     	
     	public combo_and_timer() {
     		activeNumType = -1;
@@ -342,6 +371,7 @@ public class Board extends JPanel implements ActionListener {
     	    combo_timer = 0;
     	    interim_time = 0; // what does this do?
     	    combo_counter = 0;
+    	    combo_just_finished = false;
     	}
     	
     	// documentation
@@ -350,21 +380,23 @@ public class Board extends JPanel implements ActionListener {
     		this.global_timer = (int) ((System.currentTimeMillis() - this.start_time) / 1000 );
         	
         	// update combo timer when there is an active number
-        	if (this.activeNumType != -1 && this.global_timer != this.interim_time) { // interim_time seems hacky...
+        	if (this.activeNumType != -1 && this.global_timer != this.interim_time) {
         		this.combo_timer--;
         		this.combo_timer = this.combo_timer < 0 ? 0 : this.combo_timer; // combo_timer has floor of 0
         		this.interim_time = this.global_timer;
+        		if (this.combo_timer == 0) {
+        			System.out.println("combo timer just finished");
+        			score += this.combo_counter * 5;
+            		this.combo_counter = 0;
+            		this.activeNumType = -1;
+            		puzzle.resetHighlights();
+            		puzzle.highlightedNumType = -1;
+        		}
         	}
         	
         	// deactivate numtype when time runs out
         	if (this.activeNumType != -1 && this.combo_timer <= 0) {
         		this.activeNumType = -1;
-        	}
-        	
-        	// update score when combo_timer hits zero
-        	if (this.combo_timer == 0) {
-        		score += this.combo_counter * 5;
-        		this.combo_counter = 0;
         	}
         	
         	// update final time with current global time until game ends
@@ -378,6 +410,10 @@ public class Board extends JPanel implements ActionListener {
         			&& puzzle.completedNums[this.activeNumType - 1]) {
 				this.combo_timer = 0;
 				score += this.combo_counter * 5;
+				this.activeNumType = -1;
+        		puzzle.resetHighlights();
+        		puzzle.highlightedNumType = -1;
+        		this.combo_counter = 0;
 			}
     	}
     	
