@@ -171,13 +171,9 @@ public class Board extends JPanel implements ActionListener {
     				g.drawImage(this.blankHighlightedTile, num_x, num_y, this);
     			}
     			
-    			// draw highlights
-    			boolean vanilla_hl = false;
-    			float opacity = 0.3f;
-    			if (!vanilla_hl) {
-    				opacity = this.combotimer.activeNumType == -1 ?
-							0.3f : ((float)this.combotimer.combo_timer / 8);
-    			}
+    			// draw tile highlights
+    			float opacity = this.combotimer.activeNumType == -1 ?
+							0.3f : ((float)this.combotimer.combo_seconds / 7);
     			AlphaComposite alcom = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, opacity);
     	    	g2d.setComposite(alcom);
     			if (this.puzzle.puzzleArr[1][row][col] == 1) {
@@ -236,8 +232,8 @@ public class Board extends JPanel implements ActionListener {
     	if (this.combotimer.activeNumType != -1) {
     		// animation for text first appearing
     		// wrap this in some sort of if statement for final animation
-    		int cur_tenths = (int) ((System.currentTimeMillis() - this.combotimer.start_time) / 100 );
-    		if (this.combotimer.combo_timer == 7 && !this.combotimer.begin_anim) {
+    		int cur_tenths = (int) ((System.currentTimeMillis() - this.combotimer.global_start_time) / 100 );
+    		if (this.combotimer.combo_timer + 1 == 7 && !this.combotimer.begin_anim) {
     			this.combotimer.begin_anim = true;
     			this.combotimer.tenths_c = 0;
     		}
@@ -254,7 +250,7 @@ public class Board extends JPanel implements ActionListener {
     		}
     		
     		this.combotimer.tenths_c = this.combotimer.tenths_c > 4 ? 4 : this.combotimer.tenths_c; // cap tenths_c at 4
-    		if (this.combotimer.combo_timer == 7 || this.combotimer.combo_timer == 8) {
+    		if (this.combotimer.combo_timer + 1 ==  7) {
     			g.drawImage(this.combo_sparks[this.combotimer.tenths_c], this.GLOBAL_OFFSET_X - 155, this.GLOBAL_OFFSET_Y - 215, this);
     		}
     		
@@ -262,7 +258,7 @@ public class Board extends JPanel implements ActionListener {
         	g.drawString("Combo Count:", this.GLOBAL_OFFSET_X, 100); 
         	g.drawString("" + this.combotimer.combo_counter, this.GLOBAL_OFFSET_X + 400, 100);
         	g.drawString("Combo Timer:", this.GLOBAL_OFFSET_X, 175);
-        	g.drawString("" + this.combotimer.combo_timer, this.GLOBAL_OFFSET_X + 375, 175);
+        	g.drawString("" + (8 - this.combotimer.combo_seconds), this.GLOBAL_OFFSET_X + 375, 175);
     	}
     	
     	
@@ -301,9 +297,6 @@ public class Board extends JPanel implements ActionListener {
             x = x < GLOBAL_OFFSET_X ? GLOBAL_OFFSET_X + CELL_W_H * 9 : x; // prevent negative cell coords
             y = y < GLOBAL_OFFSET_Y ? GLOBAL_OFFSET_Y + CELL_W_H * 9 : y;
             puzzle.setHighlights((x - GLOBAL_OFFSET_X) / CELL_W_H, (y - GLOBAL_OFFSET_X) / CELL_W_H);
-            
-            // potential for new combo
-            combotimer.combo_just_finished = false;
 
             }
         }
@@ -342,19 +335,27 @@ public class Board extends JPanel implements ActionListener {
         					// check if this number type is now completed
         					puzzle.setCompletedNumTypes(numToEnter);
         					
-        					// combo is newly activated
+        					// either combo is newly activated
+        					// TODO: this code can probably be refactored
         					if (combotimer.activeNumType == -1) {
         						combotimer.activeNumType = numToEnter;
-        						combotimer.combo_timer = 8;
+        						
+        						// forcing combo timer's first second to actually be a full second
+        						combotimer.combo_start_time = (System.currentTimeMillis() - combotimer.global_start_time);
+        						combotimer.combo_seconds = 1;
+        						
+        						combotimer.combo_timer = 7;
         						combotimer.combo_counter++;
-        						System.out.println("combo just started");
-        						combotimer.combo_just_finished = true; // TODO: this name is confusing as hell?
-        					} 
+        					} else 
         					
-        					// combo is alive and corresponding num is entered
+        					// or combo is alive and corresponding num is entered
         					if (combotimer.activeNumType == numToEnter) {
         						combotimer.combo_counter++;
-        						combotimer.combo_timer = 8;
+        						combotimer.combo_timer = 7;
+        						
+        						// forcing combo timer's first second to actually be a full second
+        						combotimer.combo_start_time = (System.currentTimeMillis() - combotimer.global_start_time);
+        						combotimer.combo_seconds = 1;
         					}
         					
         					repaint();
@@ -369,69 +370,61 @@ public class Board extends JPanel implements ActionListener {
     
     // documenatation
     private class combo_and_timer {
-    	private int activeNumType; // number type for combo
-        private long start_time;   // used to calculate time since game started
-        private int combo_timer;   // self-explanatory
-        private int interim_time;  // keep track of when int version of global time changes
+    	private int activeNumType;        // number type for combo
+        private long global_start_time;   // used to calculate time since game started
+        private int combo_timer;          // self-explanatory
         private int combo_counter; // self-explanatory
         private int global_timer;  // ... time game has been running
         private int final_time;    // final time for game over screen
-        boolean combo_just_finished; // TODO: remove this variable
         boolean begin_anim = false;
-        int interim_tenths;
-        int tenths_c;
+        private int interim_tenths;
+        private int tenths_c;
+        
+        // forcing combo timer's first second to actually last a second
+        private long combo_start_time;
+        private int combo_seconds = 1;
     	
     	public combo_and_timer() {
     		this.activeNumType = -1;
-    		this.start_time = System.currentTimeMillis();
+    		this.global_start_time = System.currentTimeMillis();
     	    this.combo_timer = 0;
-    	    this.interim_time = 0; // what does this do?
     	    this.combo_counter = 0;
-    	    this.combo_just_finished = false;
-    	    this.interim_tenths = (int) ((System.currentTimeMillis() - this.start_time) / 100 );
+    	    this.interim_tenths = (int) ((System.currentTimeMillis() - this.global_start_time) / 100 );
     	}
     	
     	// documentation
     	public void update() {
     		// update global timer
-    		this.global_timer = (int) ((System.currentTimeMillis() - this.start_time) / 1000 );    		
+    		this.global_timer = (int) ((System.currentTimeMillis() - this.global_start_time) / 1000 );
         	
-        	// update combo timer when there is an active number
-        	if (this.activeNumType != -1 && this.global_timer != this.interim_time) {
-        		this.combo_timer--;
-        		this.combo_timer = this.combo_timer < 0 ? 0 : this.combo_timer; // combo_timer has floor of 0
-        		this.interim_time = this.global_timer;
-        		if (this.combo_timer == 0) {
-        			System.out.println("combo timer just finished");
+    		// a combo is currently active. let's update the combo seconds accordingly
+    		if (this.activeNumType != -1) {
+    			
+    			// first, get the miliseconds that have gone by since combo_start_time
+    			long cur_time = (System.currentTimeMillis() - this.global_start_time);
+    			long ms_since_cst = cur_time - this.combo_start_time;
+    			
+    			// if more than 7 seconds have passed, or if the current num type is completed, end the combo
+    			if (ms_since_cst >= 7000 || puzzle.completedNums[this.activeNumType - 1]) {
         			score += this.combo_counter * 5;
             		this.combo_counter = 0;
             		this.activeNumType = -1;
             		puzzle.resetHighlights();
             		puzzle.highlightedNumType = -1;
-        		}
-        	}
-        	
-        	// deactivate numtype when time runs out
-        	if (this.activeNumType != -1 && this.combo_timer <= 0) {
-        		this.activeNumType = -1;
-        	}
-        	
-        	// update final time with current global time until game ends
+    			}
+    			
+    			// otherwise, check if at least a second has passed and increment combo_seconds if it has
+    			// ASSUMES THIS METHOD GETS CALLED MORE THAN ONCE A SECOND
+    			else if (ms_since_cst - (1000 * combo_seconds) >= 0) {
+    				this.combo_seconds++;
+    			}
+    			
+    		}
+    		
+        	// always update final time with current global time until game ends
         	if (!puzzle.end_game) {
         		this.final_time = this.global_timer;
         	}
-        	
-        	// if all numbers are filled in for active num type, combo ends
-        	// TODO: should be a catch-all "combo ended" block
-        	if (this.activeNumType != -1 
-        			&& puzzle.completedNums[this.activeNumType - 1]) {
-				this.combo_timer = 0;
-				score += this.combo_counter * 5;
-				this.activeNumType = -1;
-        		puzzle.resetHighlights();
-        		puzzle.highlightedNumType = -1;
-        		this.combo_counter = 0;
-			}
     	}
     	
     }
