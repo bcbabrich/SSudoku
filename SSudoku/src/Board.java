@@ -55,7 +55,7 @@ public class Board extends JPanel implements ActionListener {
     private Image borders;
     
     // sparks images
-    private Image sparks_0;
+    private Image combo_sparks[] = new Image[5];
     
     // completed number red x
     private Image red_x;
@@ -126,9 +126,11 @@ public class Board extends JPanel implements ActionListener {
         im = new ImageIcon("src/resources/game_over.png");
         this.game_over = im.getImage();
         
-        // load sparks image
-        im = new ImageIcon("src/resources/Sparks_0.png");
-        this.sparks_0 = im.getImage();
+        // load combo sparks images
+        for (int i = 0; i < 5; i++) {
+        	im = new ImageIcon("src/resources/sparks_"+ i +".png");
+        	this.combo_sparks[i] = im.getImage();
+        }
     }
 
     private void initGame() {
@@ -174,7 +176,7 @@ public class Board extends JPanel implements ActionListener {
     			float opacity = 0.3f;
     			if (!vanilla_hl) {
     				opacity = this.combotimer.activeNumType == -1 ?
-							0.3f : ((float)this.combotimer.combo_timer / 7);
+							0.3f : ((float)this.combotimer.combo_timer / 8);
     			}
     			AlphaComposite alcom = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, opacity);
     	    	g2d.setComposite(alcom);
@@ -234,8 +236,27 @@ public class Board extends JPanel implements ActionListener {
     	if (this.combotimer.activeNumType != -1) {
     		// animation for text first appearing
     		// wrap this in some sort of if statement for final animation
-    		g.drawImage(this.sparks_0, this.GLOBAL_OFFSET_X - 155, this.GLOBAL_OFFSET_Y - 215, this);
+    		int cur_tenths = (int) ((System.currentTimeMillis() - this.combotimer.start_time) / 100 );
+    		if (this.combotimer.combo_timer == 7 && !this.combotimer.begin_anim) {
+    			this.combotimer.begin_anim = true;
+    			this.combotimer.tenths_c = 0;
+    		}
     		
+    		if (this.combotimer.begin_anim) {
+    			if (cur_tenths != this.combotimer.interim_tenths) {
+    				this.combotimer.tenths_c++;
+    				this.combotimer.interim_tenths = cur_tenths;
+    			}
+    			
+    			if (this.combotimer.tenths_c > 4) {
+    				this.combotimer.begin_anim = false;
+    			}
+    		}
+    		
+    		this.combotimer.tenths_c = this.combotimer.tenths_c > 4 ? 4 : this.combotimer.tenths_c; // cap tenths_c at 4
+    		if (this.combotimer.combo_timer == 7 || this.combotimer.combo_timer == 8) {
+    			g.drawImage(this.combo_sparks[this.combotimer.tenths_c], this.GLOBAL_OFFSET_X - 155, this.GLOBAL_OFFSET_Y - 215, this);
+    		}
     		
     		g.setColor(Color.blue);
         	g.drawString("Combo Count:", this.GLOBAL_OFFSET_X, 100); 
@@ -324,7 +345,7 @@ public class Board extends JPanel implements ActionListener {
         					// combo is newly activated
         					if (combotimer.activeNumType == -1) {
         						combotimer.activeNumType = numToEnter;
-        						combotimer.combo_timer = 7;
+        						combotimer.combo_timer = 8;
         						combotimer.combo_counter++;
         						System.out.println("combo just started");
         						combotimer.combo_just_finished = true; // TODO: this name is confusing as hell?
@@ -333,7 +354,7 @@ public class Board extends JPanel implements ActionListener {
         					// combo is alive and corresponding num is entered
         					if (combotimer.activeNumType == numToEnter) {
         						combotimer.combo_counter++;
-        						combotimer.combo_timer = 7;
+        						combotimer.combo_timer = 8;
         					}
         					
         					repaint();
@@ -355,7 +376,10 @@ public class Board extends JPanel implements ActionListener {
         private int combo_counter; // self-explanatory
         private int global_timer;  // ... time game has been running
         private int final_time;    // final time for game over screen
-        boolean combo_just_finished;
+        boolean combo_just_finished; // TODO: remove this variable
+        boolean begin_anim = false;
+        int interim_tenths;
+        int tenths_c;
     	
     	public combo_and_timer() {
     		this.activeNumType = -1;
@@ -364,6 +388,7 @@ public class Board extends JPanel implements ActionListener {
     	    this.interim_time = 0; // what does this do?
     	    this.combo_counter = 0;
     	    this.combo_just_finished = false;
+    	    this.interim_tenths = (int) ((System.currentTimeMillis() - this.start_time) / 100 );
     	}
     	
     	// documentation
